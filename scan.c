@@ -1,6 +1,9 @@
 #include "defs.h"
-#include "data.h"
 #include "decl.h"
+
+int Line = 1;
+int Putback = '\n';
+FILE *Infile;
 
 // return the next char from input, which could be the Putback character
 static int next(void) {

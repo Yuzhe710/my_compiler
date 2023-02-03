@@ -1,5 +1,5 @@
 #include "defs.h"
-#include "data.h"
+#include "scan.h"
 #include "decl.h"
 #include <errno.h>
 
