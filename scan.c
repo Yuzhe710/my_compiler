@@ -1,9 +1,7 @@
 #include "defs.h"
+#include "scan.h"
 #include "decl.h"
 
-int Line = 1;
-int Putback = '\n';
-FILE *Infile;
 
 // return the next char from input, which could be the Putback character
 static int next(void) {
@@ -67,6 +65,7 @@ int scan(struct token *t) {
     // Determine the token based on input char
     switch(c) {
         case EOF:
+            t->token = T_EOF;
             return 0;
         case '+':
             t->token = T_PLUS;

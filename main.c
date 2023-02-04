@@ -1,5 +1,7 @@
 #include "defs.h"
+#define extern_
 #include "scan.h"
+#undef extern_
 #include "decl.h"
 #include <errno.h>
 
@@ -16,10 +18,12 @@ static void usage(char *prog) {
 }
 
 // List of printable tokens
-char *tokstr[] = {"+", "-", "*", "/", "intlit"};
+// char *tokstr[] = {"+", "-", "*", "/", "intlit"};
 
 // loop scannig all the tokens in the input file.
 // print out each token found
+// this is for Part01 - Lexical Scanner
+/*
 static void scanfile() {
     struct token T;
 
@@ -31,8 +35,11 @@ static void scanfile() {
         printf("\n");
     }
 }
+*/
 
-int main(int argc, char *argv[]) {
+void main(int argc, char *argv[]) {
+    struct ASTnode *n;
+
     if (argc != 2)
         usage(argv[0]);
     
@@ -43,9 +50,10 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    scanfile();
+    //scanfile();
+    scan(&Token);                       // Get the first token from the input
+    n = binexpr();                      // Parse the expression in the file
+    printf("%d\n", interpretAST(n));     // calculate the final result
     exit(0);
-
-    return 1;
 }
 
