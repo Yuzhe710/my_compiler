@@ -1,8 +1,9 @@
 #include "defs.h"
-#define extern_
+// #define extern_
 #include "scan.h"
-#undef extern_
+// #undef extern_
 #include "decl.h"
+#include "initialize.c"
 #include <errno.h>
 
 // Initialise global variables
