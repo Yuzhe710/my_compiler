@@ -11,4 +11,5 @@
 extern int Putback;
 extern int Line;
 extern FILE *Infile;
+extern FILE *Outfile;
 extern struct token Token;
