@@ -3,7 +3,7 @@
 #include "decl.h"
 
 
-static int genAST(struct ASTnode *n) {
+int genAST(struct ASTnode *n) {
     int leftreg, rightreg;
 
     // Get the left and right sub-tree values
@@ -28,6 +28,20 @@ static int genAST(struct ASTnode *n) {
             exit(1);
     }
     
+}
+
+void genpreamble() {
+    cgpreamble();
+}
+
+void genpostamble() {
+  cgpostamble();
+}
+void genfreeregs() {
+  freeall_registers();
+}
+void genprintint(int reg) {
+  cgprintint(reg);
 }
 
 void generatecode(struct ASTnode *n) {

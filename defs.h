@@ -3,10 +3,13 @@
 #include <string.h>
 #include <ctype.h>
 
+#define TEXTLEN     512 
+
+
 // represent "+", "-", "x", "/" and INT in current expressions
 // namely token types
 enum {
-    T_EOF, T_PLUS, T_MINUS, T_STAR, T_SLASH, T_INT
+    T_EOF, T_PLUS, T_MINUS, T_STAR, T_SLASH, T_INT, T_SEMI, T_PRINT
 };
 
 // token structure

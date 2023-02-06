@@ -61,9 +61,9 @@ struct ASTnode *binexpr(int ptp) {
     // get the next token at the same time
     left = getleft();
 
-    // if no token left, just return the left node
+    // if hit a semi colon, just return the left node
     tokentype = Token.token;
-    if (tokentype == T_EOF)
+    if (tokentype == T_SEMI)
         return left;
 
     // while the precedence of this token is 
@@ -80,8 +80,9 @@ struct ASTnode *binexpr(int ptp) {
         left = mkastnode(getoperation(tokentype), left, right, 0);
 
         // update the tokentype to be the type of current token
+        // If we hit a semi-colon, just return the left node
         tokentype = Token.token;
-        if (tokentype == T_EOF) 
+        if (tokentype == T_SEMI) 
             return left;
     }
     // return the tree when its precedence is same or lower
