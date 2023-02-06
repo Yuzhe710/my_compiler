@@ -85,7 +85,6 @@ static int keyword(char *s) {
     switch(*s) {
         case 'p':
             if (!strcmp(s, "print")) {
-                printf("%d\n", T_PRINT);
                 return (T_PRINT);
             }
 
