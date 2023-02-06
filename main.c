@@ -40,9 +40,11 @@ static void scanfile() {
 
 void main(int argc, char *argv[]) {
 
+
     if (argc != 2)
         usage(argv[0]);
-    
+
+    Text = (char*) malloc(513);    
     init();
 
     // Open up the input file

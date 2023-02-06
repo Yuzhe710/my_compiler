@@ -84,8 +84,11 @@ static int scanindentifier(int c, char *buf, int lim) {
 static int keyword(char *s) {
     switch(*s) {
         case 'p':
-            if (!strcmp(s, "print"))
+            if (!strcmp(s, "print")) {
+                printf("%d\n", T_PRINT);
                 return (T_PRINT);
+            }
+
             break;
     }
     return 0;
@@ -126,8 +129,7 @@ int scan(struct token *t) {
             } else if (isalpha(c) || c == '_') {
                 // read a keyword or identifier
                 scanindentifier(c, Text, TEXTLEN);
-
-                if (tokentype == keyword(Text)) {
+                if (tokentype = keyword(Text)) {
                     t->token = tokentype;
                     break;
                 }

@@ -6,4 +6,4 @@ int Line = 1;
 FILE *Infile;
 FILE *Outfile;
 struct token Token;
-char Text[512 + 1];
+char *Text;

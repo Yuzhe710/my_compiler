@@ -14,7 +14,7 @@ extern int Line;                // Character put back by scanner
 extern FILE *Infile;            // Input and output files
 extern FILE *Outfile;           
 extern struct token Token;      // Last token scanned
-extern char Text[512 + 1];  // a buffer contains Last identifier scanned
+extern char *Text;  // a buffer contains Last identifier scanned
 
 // #ifndef extern_
 // #define extern_ extern
