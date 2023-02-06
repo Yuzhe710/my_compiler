@@ -39,7 +39,6 @@ static void scanfile() {
 */
 
 void main(int argc, char *argv[]) {
-    struct ASTnode *n;
 
     if (argc != 2)
         usage(argv[0]);
