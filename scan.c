@@ -65,7 +65,7 @@ static int scanindentifier(int c, char *buf, int lim) {
         if (i == lim - 1) {
             printf("identifier too long on line %d\n", Line);
             exit(1);
-        } else {
+        } else if (i < lim - 1) {
             buf[i++] = c;
         }
         c = next();
@@ -84,7 +84,7 @@ static int scanindentifier(int c, char *buf, int lim) {
 static int keyword(char *s) {
     switch(*s) {
         case 'p':
-            if (strcmp(s, "print"))
+            if (!strcmp(s, "print"))
                 return (T_PRINT);
             break;
     }

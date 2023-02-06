@@ -44,11 +44,11 @@ void genprintint(int reg) {
   cgprintint(reg);
 }
 
-void generatecode(struct ASTnode *n) {
-    int reg;
+// void generatecode(struct ASTnode *n) {
+//     int reg;
 
-    cgpreamble();
-    reg = genAST(n);
-    cgprintint(reg);
-    cgpostamble();
-}
+//     cgpreamble();
+//     reg = genAST(n);
+//     cgprintint(reg);
+//     cgpostamble();
+// }
