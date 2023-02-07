@@ -1,5 +1,5 @@
 # my_compiler
- compiler for subset of C
+ compiler for subset of C, I mainly learn from [DoctorWkt's project](https://github.com/DoctorWkt/acwj), it is still ongoing...  
  
 ## Part_1 - A simple lexical scanner 
 A simple lexical scanner that recognises 4 main math operators (+ - * /) and also integer literals.  
@@ -76,3 +76,45 @@ gcc -o parser expr.c interp.c main.c scan.c tree.c
 To test:  
   
 ./parser input01 (this time only final result will be present)  
+
+## Part_4 assembly code generation  
+In this part, we generate assembly from AST (previously we only have interpreter to interpret the result).  
+  
+We uses 4 general purpose registers in x86-64, r8, r9, r10, r11  
+  
+code generator from AST is quite similar process (in terms of structure) compared to interpret it.  
+  
+One thing which does not make full sense to me is the x86 assembly code, the preamble and postamble.  
+  
+To compile：  
+gcc-12 -o comp1 cg.c expr.c gen.c interp.c main.c scan.c tree.c  
+  
+To test with inputs:  
+./comp1 input01 (the out.s contains the generated assembly code)  
+
+## Part_5 print statements  
+A statement grammar has been added . The BNF notation is:  
+  
+statements: statement  
+       | statement statements  
+       ;  
+  
+statement: 'print' expression ';'  
+       ;  
+  
+So far the statement only has print keyword. But we have made changes to lexical scanner, parser to make code compatible with other future statements.  
+  
+As currently there is only one type of statement in our language, this part we gonna test only against that (ignore other tests from previous parts). We first scan and match a "print" keyword as the first token, then parse the following expressions as usual, buid AST, generate assembly code and finally free all the registers. Note that we also add semicolon into our language, which is expected to have at the end of every statement.  
+  
+To compile:  
+gcc -o comp1 cg.c expr.c gen.c main.c misc.c scan.c stmt.c tree.c  
+  
+To test:  
+Step 1: ./comp1 input05  
+  
+Step 2: gcc -o out out.s  
+  
+Step 3: ./out  
+  
+## Part_6 Variables  
+...  
