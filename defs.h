@@ -28,7 +28,7 @@ enum {
 
 // AST structure
 struct ASTnode {
-    int op;     // operation to be performed
+    int op;                     // operation to be performed
     struct ASTnode *left;       // left and right child trees
     struct ASTnode *right;
     int intvalue;               

@@ -22,12 +22,12 @@ main:
 	movq	%rsp, %rbp
 	.comm	fred,8,8
 	.comm	jim,8,8
-	movq	fred(%rip), %r8
+	movq	$0, %r8
 	movq	(null), fred(%rip)
+	movq	$0, %r8
+	movq	(null), jim(%rip)
 	movq	fred(%rip), %r8
-	movq	(null), fred(%rip)
-	movq	fred(%rip), %r8
-	movq	fred(%rip), %r9
+	movq	jim(%rip), %r9
 	addq	%r8, %r9
 	movq	%r9, %rdi
 	call	printint

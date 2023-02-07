@@ -11,11 +11,12 @@ static struct ASTnode *getleft(void) {
     switch (Token.token) {
         case T_INT:
             n = mkastleaf(A_INTLIT, Token.intvalue);
+            break;
         case T_IDENT:
             // check that this identifier exists
             id = findglob(Text);
             if (id == -1)
-                fatals("Unknown variable %s", Text);
+                fatals("Unknown variable", Text);
             
             // Make a leaf AST node for it
             n = mkastleaf(A_IDENT, id);
@@ -25,6 +26,7 @@ static struct ASTnode *getleft(void) {
     }
     // scan the next token and return the leaf node
     scan(&Token);
+
     return n;
 }
 
@@ -65,7 +67,7 @@ struct ASTnode *binexpr(int ptp) {
     struct ASTnode *left, *right;
 
     int tokentype;
-
+    //printf("%d\n", Token.intvalue);
     // Get the integer literal on the left
     // get the next token at the same time
     left = getleft();

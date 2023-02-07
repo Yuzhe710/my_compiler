@@ -61,7 +61,7 @@ void assignment_statement(void) {
 
     // Rvalue expression needs to be evaluated before saved to variable, make it left tree.
     left = binexpr(0);
-
+    // printf("%d\n", left->v.intvalue);
     tree = mkastnode(A_ASSIGN, left, right, 0);
 
     genAST(tree, -1);
