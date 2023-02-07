@@ -74,15 +74,26 @@ void cgpostamble()
   Outfile);
 }
 
-// Load an integer literal value into a register
+// Load an integer literal value into a register.
 // Return the number of the register
-int cgload(int value) {
+int cgloadint(int value) {
+  // Get a new register
+  int r = alloc_register();
+
+  // Print out the code to initialise it
+  fprintf(Outfile, "\tmovq\t$%d, %s\n", value, reglist[r]);
+  return (r);
+}
+
+// Load a value from a variable into a register
+// Return the number of the register
+int cgloadglob(char *identifier) {
 
     // Get a new register
     int r = alloc_register();
 
     // Print out the code to initialise it
-    fprintf(Outfile, "\tmovq\t$%d, %s\n", value, reglist[r]);
+    fprintf(Outfile, "\tmovq\t%s(\%%rip), %s\n", identifier, reglist[r]);
     return r;
 }
 
@@ -121,6 +132,12 @@ int cgdiv(int r1, int r2) {
     return(r1);
 }
 
+// Store a register's value into a variable
+int cgstorglob(int r, char *identifier) {
+    fprintf(Outfile, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], identifier);
+    return r;
+}
+
 // Call printint() with the given register
 // Linux x86-64 expects the first argument to a function to be in the %rdi register, so we move our register into %rdi before we call printint.
 void cgprintint(int r) {
@@ -129,4 +146,8 @@ void cgprintint(int r) {
     free_register(r);
 }
 
+// Generate a global symbol 
+void cgglobsym(char *sym) {
+    fprintf(Outfile, "\t.comm\t%s,8,8\n", sym);
+}
 

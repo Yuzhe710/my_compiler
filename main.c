@@ -44,7 +44,12 @@ void main(int argc, char *argv[]) {
     if (argc != 2)
         usage(argv[0]);
 
-    Text = (char*) malloc(513);    
+    Text = (char*) malloc(513); 
+    for (int i = 0; i < 1024; i ++) {
+        Gsym[i] = (struct symtable *)malloc(sizeof(struct symtable));
+    }
+
+
     init();
 
     // Open up the input file

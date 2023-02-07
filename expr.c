@@ -5,18 +5,27 @@
 // parse the first factor and retrun an AST node representing it
 static struct ASTnode *getleft(void) {
     struct ASTnode *n;
-    
+    int id;
     // For an INT node, make a leaf AST node for it and 
     // scan in the next token, otherwise, generate a syntax error
     switch (Token.token) {
         case T_INT:
             n = mkastleaf(A_INTLIT, Token.intvalue);
-            scan(&Token);
-            return n;
+        case T_IDENT:
+            // check that this identifier exists
+            id = findglob(Text);
+            if (id == -1)
+                fatals("Unknown variable %s", Text);
+            
+            // Make a leaf AST node for it
+            n = mkastleaf(A_IDENT, id);
+            break;
         default:
-            fprintf(stderr, "syntax error on line %d\n", Line);
-            exit(1);
+            fatald("Syntax error, token", Token.token);
     }
+    // scan the next token and return the leaf node
+    scan(&Token);
+    return n;
 }
 
 // convert a binary operator token into an AST operation

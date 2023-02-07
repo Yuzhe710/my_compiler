@@ -14,8 +14,8 @@ extern int Line;                // Character put back by scanner
 extern FILE *Infile;            // Input and output files
 extern FILE *Outfile;           
 extern struct token Token;      // Last token scanned
-extern char *Text;  // a buffer contains Last identifier scanned
-
+extern char *Text;              // a buffer contains Last identifier scanned
+extern struct symtable *Gsym[1024];   // Gobal symbol table
 // #ifndef extern_
 // #define extern_ extern
 // #endif

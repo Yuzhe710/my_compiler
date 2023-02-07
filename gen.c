@@ -3,14 +3,16 @@
 #include "decl.h"
 
 
-int genAST(struct ASTnode *n) {
+
+
+int genAST(struct ASTnode *n, int reg) {
     int leftreg, rightreg;
 
     // Get the left and right sub-tree values
     if (n->left) 
-        leftreg = genAST(n->left);
+        leftreg = genAST(n->left, -1); // the left sub-tree will only be assignments and evaluated first, so no registers containg previous result is need
     if (n->right)
-        rightreg = genAST(n->right);
+        rightreg = genAST(n->right, reg); // the right sub-tree will be lvalue (identifier), so register containing left expression's result is need
     
     switch(n->op) {
         case A_ADD:
@@ -22,10 +24,16 @@ int genAST(struct ASTnode *n) {
         case A_DIVIDE:
             return cgdiv(leftreg, rightreg);
         case A_INTLIT:
-            return cgload(n->intvalue);
+            return cgloadint(n->intvalue);
+        case A_IDENT:
+            return cgloadglob(Gsym[n->v.id]->name);
+        case A_LVIDENT:
+            return cgstorglob(reg, Gsym[n->v.id]->name);
+        case A_ASSIGN:
+            return rightreg;
+        
         default:
-            fprintf(stderr, "Unknown AST operator %d\n", n->op);
-            exit(1);
+            fatald("Unknown AST operator", n->op);
     }
     
 }
@@ -42,6 +50,10 @@ void genfreeregs() {
 }
 void genprintint(int reg) {
   cgprintint(reg);
+}
+
+void genglobsym(char *s) {
+    cgglobsym(s);
 }
 
 // void generatecode(struct ASTnode *n) {
