@@ -69,6 +69,7 @@ int cgloadint(int value) {
   // Get a new register
   int r = alloc_register();
 
+  // printf("%d\n", value);
   // Print out the code to initialise it
   fprintf(Outfile, "\tmovq\t$%d, %s\n", value, reglist[r]);
   return (r);

@@ -24,7 +24,7 @@ int genAST(struct ASTnode *n, int reg) {
         case A_DIVIDE:
             return cgdiv(leftreg, rightreg);
         case A_INTLIT:
-            return cgloadint(n->intvalue);
+            return cgloadint(n->v.intvalue);
         case A_IDENT:
             return cgloadglob(Gsym[n->v.id]->name);
         case A_LVIDENT:

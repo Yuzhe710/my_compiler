@@ -34,6 +34,7 @@ void print_statement(void) {
     // Parse the following expression and
     // generate the assembly code
     tree = binexpr(0);
+    // printf("%d\n", tree->op);
     reg = genAST(tree, -1);
     genprintint(reg);
     genfreeregs();
@@ -55,13 +56,14 @@ void assignment_statement(void) {
     if ((id = findglob(Text)) == -1) {
         fatals("Undeclared variable", Text);
     }
+    // printf("%s\n", Gsym[id]->name);
     right = mkastleaf(A_LVIDENT, id);
 
     match(T_EQUALS, "=");
 
     // Rvalue expression needs to be evaluated before saved to variable, make it left tree.
     left = binexpr(0);
-    // printf("%d\n", left->v.intvalue);
+    // printf("yes %s\n", Gsym[id]->name);
     tree = mkastnode(A_ASSIGN, left, right, 0);
 
     genAST(tree, -1);

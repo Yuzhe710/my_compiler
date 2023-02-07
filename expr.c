@@ -17,7 +17,7 @@ static struct ASTnode *getleft(void) {
             id = findglob(Text);
             if (id == -1)
                 fatals("Unknown variable", Text);
-            
+            // printf("%s\n", Gsym[id]->name);
             // Make a leaf AST node for it
             n = mkastleaf(A_IDENT, id);
             break;
