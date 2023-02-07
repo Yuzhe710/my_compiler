@@ -1,7 +1,7 @@
 # my_compiler
  compiler for subset of C
  
-Part_1 - A simple lexical scanner  
+<font size="2">Part_1 - A simple lexical scanner </font>
 A simple lexical scanner that recognises 4 main math operators (+ - * /) and also integer literals.  
 
 To compile:  
