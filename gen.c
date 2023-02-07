@@ -12,7 +12,7 @@ int genAST(struct ASTnode *n, int reg) {
     if (n->left) 
         leftreg = genAST(n->left, -1); // the left sub-tree will only be assignments and evaluated first, so no registers containg previous result is need
     if (n->right)
-        rightreg = genAST(n->right, reg); // the right sub-tree will be lvalue (identifier), so register containing left expression's result is need
+        rightreg = genAST(n->right, leftreg); // the right sub-tree will be lvalue (identifier), so register containing left expression's result is need
     
     switch(n->op) {
         case A_ADD:
