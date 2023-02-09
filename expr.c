@@ -31,20 +31,12 @@ static struct ASTnode *getleft(void) {
 }
 
 // convert a binary operator token into an AST operation
-int getoperation(int tok) {
-    switch (tok) {
-        case T_PLUS:
-            return (A_ADD);
-        case T_MINUS:
-            return (A_SUBSTRACT);
-        case T_STAR:
-            return (A_MULTIPLY);
-        case T_SLASH:
-            return (A_DIVIDE);
-        default:
-            fprintf(stderr, "unknown token in arithop() on line %d\n", Line);
-            exit(1);
+// an 1:1 mapping from token type to AST operation node type
+int getoperation(int tokentype) {
+    if (tokentype > T_EOF && tokentype < T_INTLIT) {
+        return tokentype;
     }
+    fatald("Syntax error, token", tokentype);
 }
 
 // Operator precedence for each token

@@ -124,7 +124,35 @@ int scan(struct token *t) {
             t->token = T_SEMI;
             break;
         case '=':
-            t->token = T_ASSIGN;
+            if ((c = next()) == '=') {
+                t->token = T_EQ;
+            } else {
+                Putback = c;
+                t->token = T_ASSIGN;
+            }
+            break;
+        case '!':
+            if ((c = next()) == '=') {
+                t->token = T_NE;
+            } else {
+                fatalc("Unrecognised character", c);
+            }
+            break;
+        case '<':
+            if ((c = next()) == '=') {
+                t->token = T_LE;
+            } else {
+                Putback = c;
+                t->token = T_LT;
+            }
+            break;
+        case '>':
+            if ((c = next()) == '=') {
+                t->token = T_GE;
+            } else {
+                Putback = c;
+                t->token = T_GT;
+            }
             break;
         default:
             // if it is a digit, scanint

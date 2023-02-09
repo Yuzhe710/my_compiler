@@ -5,8 +5,10 @@
 
 // List of available registers and names, in our code these are seen as generic registers as r0, r1, r2, r3
 // these 4 are all general purpose registers in x86-64
+// and byte registers
 static int freereg[4];  // 1 means available, 0 means unavailable
 static char *reglist[4] = {"%r8", "%r9", "%r10", "%r11"};
+static char *breglist[4] = {"%r8b", "%r9b", "%r10b", "%r11b"};
 
 // Set all registers as available
 void freeall_registers(void) {
@@ -138,3 +140,20 @@ int cgstorglob(int r, char *identifier) {
 void cgglobsym(char *sym) {
   fprintf(Outfile, "\t.comm\t%s,8,8\n", sym);
 }
+
+// compare two registers
+// static functions has scope limited to its object file
+static int cgcompare(int r1, int r2, char *how) {
+  fprintf(Outfile, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
+  fprintf(Outfile, "\t%s\t%s\n", how, breglist[r2]); // set the lowest byte
+  fprintf(Outfile, "\tandq\t$255, %s\n", reglist[r2]); // clear all the other bits
+  free_register(r1);
+  return r2;
+}
+
+int cgequal(int r1, int r2) {return cgcompare(r1, r2, "sete");}
+int cgnotequal(int r1, int r2) {return cgcompare(r1, r2, "setne");}
+int cglessthan(int r1, int r2) {return cgcompare(r1, r2, "setl");}
+int cggreatthan(int r1, int r2) {return cgcompare(r1, r2, "setg");}
+int cglessequal(int r1, int r2) {return cgcompare(r1, r2, "setle");}
+int cggreaterequal(int r1, int r2) {return cgcompare(r1, r2, "setge");}
