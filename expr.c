@@ -40,10 +40,16 @@ int getoperation(int tokentype) {
 }
 
 // Operator precedence for each token
-static int OpPrec[] = {0, 10, 10, 20, 20, 0}; // EOF, +, -, *, /, Int
+static int OpPrec[] = {
+    0, 10, 10,          // T_EOF, T_PLUS, T_MINUS
+    20, 20,             // T_STAR, T_SLASH
+    30, 30,             // T_EQ, T_NE
+    40, 40, 40, 40      // T_LT, T_GT, T_LE, T_GE
+    }; 
 
 static int op_precedence(int tokentype) {
     int prec = OpPrec[tokentype];
+    // printf("%d\n", tokentype);
     if (prec == 0) {
         fprintf(stderr, "syntax error on line %d, token %d\n", Line, tokentype);
         exit(1);
