@@ -9,9 +9,14 @@
 // represent "+", "-", "x", "/" and INT in current expressions
 // namely token types
 enum {
-    T_EOF, T_PLUS, T_MINUS, T_STAR, T_SLASH, T_INT, T_SEMI, T_EQUALS,
-    T_IDENT,
-    T_PRINT
+    T_EOF, 
+    T_PLUS, T_MINUS, 
+    T_STAR, T_SLASH, 
+    T_EQ, T_NE,
+    T_LT, T_GT, T_LE, T_GE,
+    T_INTLIT, T_SEMI, T_ASSIGN, T_IDENT,
+
+    T_PRINT, T_INT
 };
 
 // token structure

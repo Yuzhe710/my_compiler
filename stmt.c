@@ -59,7 +59,7 @@ void assignment_statement(void) {
     // printf("%s\n", Gsym[id]->name);
     right = mkastleaf(A_LVIDENT, id);
 
-    match(T_EQUALS, "=");
+    match(T_ASSIGN, "=");
 
     // Rvalue expression needs to be evaluated before saved to variable, make it left tree.
     left = binexpr(0);

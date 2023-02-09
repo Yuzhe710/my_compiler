@@ -9,7 +9,7 @@ static struct ASTnode *getleft(void) {
     // For an INT node, make a leaf AST node for it and 
     // scan in the next token, otherwise, generate a syntax error
     switch (Token.token) {
-        case T_INT:
+        case T_INTLIT:
             n = mkastleaf(A_INTLIT, Token.intvalue);
             break;
         case T_IDENT:

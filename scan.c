@@ -124,13 +124,13 @@ int scan(struct token *t) {
             t->token = T_SEMI;
             break;
         case '=':
-            t->token = T_EQUALS;
+            t->token = T_ASSIGN;
             break;
         default:
             // if it is a digit, scanint
             if (isdigit(c)) {
                 t->intvalue = scanint(c);
-                t->token = T_INT;
+                t->token = T_INTLIT;
                 break;
             } else if (isalpha(c) || c == '_') {
                 // read a keyword or identifier
