@@ -55,6 +55,7 @@ struct ASTnode *compound_statement(void) {
         switch (Token.token) {
             case T_PRINT:
                 tree = print_statement();
+                break;
             case T_INT:
                 var_declaration();
                 tree = NULL;

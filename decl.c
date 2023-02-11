@@ -6,7 +6,7 @@
 // It must be the 'int' token followed by an identifier 
 // and a semicolon. Add the identifier to symbol table
 void var_declaration(void) {
-
+    // printf("Line is %d\n", Line);
     match(T_INT, "int");
     matchident();
     addglob(Text);
