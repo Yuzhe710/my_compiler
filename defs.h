@@ -15,8 +15,9 @@ enum {
     T_EQ, T_NE,
     T_LT, T_GT, T_LE, T_GE,
     T_INTLIT, T_SEMI, T_ASSIGN, T_IDENT,
-
-    T_PRINT, T_INT
+    T_LBRACE, T_RBRACE, T_LPAREN, T_RPAREN,
+    // keywords
+    T_PRINT, T_INT, T_IF, T_ELSE
 };
 
 // token structure
@@ -30,13 +31,15 @@ enum {
     A_ADD=1, A_SUBSTRACT, A_MULTIPLY, A_DIVIDE, 
     A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE,
     A_INTLIT,
-    A_IDENT, A_LVIDENT, A_ASSIGN
+    A_IDENT, A_LVIDENT, A_ASSIGN, A_PRINT,
+    A_GLUE, A_IF
 };
 
 // AST structure
 struct ASTnode {
     int op;                     // operation to be performed
-    struct ASTnode *left;       // left and right child trees
+    struct ASTnode *left;       // left, mid and right child trees
+    struct ASTnode *mid;
     struct ASTnode *right;
     int intvalue;               
     union {
@@ -44,6 +47,8 @@ struct ASTnode {
         int id;                 // for A_IDENT, the symbol slot number
     } v;
 };
+
+#define NOREG -1                // Use NOREG when the AST 
 
 struct symtable {
     char *name;      // Name of a symbol

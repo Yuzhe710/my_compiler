@@ -63,8 +63,7 @@ static int scanindentifier(int c, char *buf, int lim) {
     // identifier could contain alphabet, digit or underscore
     while (isalpha(c) || isdigit(c) || c == '_') {
         if (i == lim - 1) {
-            printf("identifier too long on line %d\n", Line);
-            exit(1);
+            fatal("Identifier too long");
         } else if (i < lim - 1) {
             buf[i++] = c;
         }
@@ -83,16 +82,25 @@ static int scanindentifier(int c, char *buf, int lim) {
 // have to strcmp with all keywords
 static int keyword(char *s) {
     switch(*s) {
-        case 'p':
-            if (!strcmp(s, "print")) {
-                return (T_PRINT);
+        case 'e':
+            if (!strcmp(s, "else")) {
+                return T_ELSE;
             }
             break;
         case 'i':
             if (!strcmp(s, "int")) {
                 return T_INT;
             }
+            if (!strcmp(s, "if")) {
+                return T_IF;
+            }
             break;
+        case 'p':
+            if (!strcmp(s, "print")) {
+                return (T_PRINT);
+            }
+            break;
+        
     }
     return 0;
 }
@@ -122,6 +130,18 @@ int scan(struct token *t) {
             break;
         case ';':
             t->token = T_SEMI;
+            break;
+        case '{':
+            t->token = T_LBRACE;
+            break;
+        case '}':
+            t->token = T_RBRACE;
+            break;
+        case '(':
+            t->token = T_LPAREN;
+            break;
+        case ')':
+            t->token = T_RPAREN;
             break;
         case '=':
             if ((c = next()) == '=') {

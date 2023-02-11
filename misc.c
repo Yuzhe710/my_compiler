@@ -22,6 +22,24 @@ void matchident(void) {
     match(T_IDENT, "identifier");
 }
 
+void matchlbrace(void) {
+    match(T_LBRACE, "{");
+}
+
+void matchrbrace(void) {
+    match(T_RBRACE, "}");
+}
+
+void matchlparen(void) {
+    match(T_LPAREN, "(");
+}
+
+void matchrparen(void) {
+    match(T_RPAREN, ")");
+}
+
+
+
 // Print out fatal messages
 void fatal(char *s) {
   fprintf(stderr, "%s on line %d\n", s, Line); exit(1);

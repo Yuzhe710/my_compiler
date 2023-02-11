@@ -4,7 +4,7 @@
 
 
 // Build and return a generic AST node
-struct ASTnode *mkastnode(int op, struct ASTnode *left, struct ASTnode *right, int intvalue) {
+struct ASTnode *mkastnode(int op, struct ASTnode *left, struct ASTnode *mid, struct ASTnode *right, int intvalue) {
     struct ASTnode *n;
 
     // Malloc a new ASTnode
@@ -15,6 +15,7 @@ struct ASTnode *mkastnode(int op, struct ASTnode *left, struct ASTnode *right, i
     // Copy in the field values and return it
     n->op = op;
     n->left = left;
+    n->mid = mid;
     n->right = right;
     n->v.intvalue = intvalue;
     return n;
@@ -22,10 +23,10 @@ struct ASTnode *mkastnode(int op, struct ASTnode *left, struct ASTnode *right, i
 
 // Make an AST leaf node
 struct ASTnode *mkastleaf(int op, int intvalue) {
-    return mkastnode(op, NULL, NULL, intvalue);
+    return mkastnode(op, NULL, NULL, NULL, intvalue);
 }
 
 // Make a unary AST node: only one child
 struct ASTnode *mkastunary(int op, struct ASTnode *left, int intvalue) {
-    return mkastnode(op, left, NULL, intvalue);
+    return mkastnode(op, left, NULL, NULL, intvalue);
 }

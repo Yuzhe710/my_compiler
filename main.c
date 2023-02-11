@@ -39,7 +39,7 @@ static void scanfile() {
 */
 
 void main(int argc, char *argv[]) {
-
+    struct ASTnode *tree;
 
     if (argc != 2)
         usage(argv[0]);
@@ -67,7 +67,8 @@ void main(int argc, char *argv[]) {
     //scanfile();
     scan(&Token);                       // Get the first token from the input
     genpreamble();
-    statements();
+    tree = compound_statement();
+    genAST(tree, NOREG, 0);
     genpostamble();
     // n = binexpr(0);                      // Parse the expression in the file
     // printf("%d\n", interpretAST(n));     // calculate the final result

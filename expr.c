@@ -51,8 +51,7 @@ static int op_precedence(int tokentype) {
     int prec = OpPrec[tokentype];
     // printf("%d\n", tokentype);
     if (prec == 0) {
-        fprintf(stderr, "syntax error on line %d, token %d\n", Line, tokentype);
-        exit(1);
+        fatald("Syntax error, token", tokentype);
     }
     return prec;
 }
@@ -72,7 +71,7 @@ struct ASTnode *binexpr(int ptp) {
 
     // if hit a semi colon, just return the left node
     tokentype = Token.token;
-    if (tokentype == T_SEMI)
+    if (tokentype == T_SEMI || tokentype == T_RPAREN)
         return left;
 
     // while the precedence of this token is 
@@ -86,12 +85,12 @@ struct ASTnode *binexpr(int ptp) {
         right = binexpr(OpPrec[tokentype]);
 
         // Join that sub-tree with ours
-        left = mkastnode(getoperation(tokentype), left, right, 0);
+        left = mkastnode(getoperation(tokentype), left, NULL, right, 0);
 
         // update the tokentype to be the type of current token
         // If we hit a semi-colon, just return the left node
         tokentype = Token.token;
-        if (tokentype == T_SEMI) 
+        if (tokentype == T_SEMI || tokentype == T_RPAREN) 
             return left;
     }
     // return the tree when its precedence is same or lower
