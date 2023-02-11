@@ -33,12 +33,7 @@ main:
 	movq	i(%rip), %r8
 	movq	%r8, %rdi
 	call	printint
-	jmp	L2
 L1:
-	movq	j(%rip), %r8
-	movq	%r8, %rdi
-	call	printint
-L2:
 	movl	$0, %eax
 	popq	%rbp
 	ret

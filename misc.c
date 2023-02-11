@@ -9,7 +9,6 @@ void match(int t, char *what) {
         scan(&Token);
     } else {
         printf("%s expected on line %d\n", what, Line);
-        //printf("%d\n", Token.token);
         exit(1);
     }
 }
