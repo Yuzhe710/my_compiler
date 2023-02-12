@@ -15,12 +15,13 @@ printint:
 	leave
 	ret
 
+	.comm	i,8,8
+	.text
 	.globl	main
 	.type	main, @function
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	.comm	i,8,8
 	movq	$1, %r8
 	movq	%r8, i(%rip)
 L1:

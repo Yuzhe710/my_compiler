@@ -64,15 +64,14 @@ void main(int argc, char *argv[]) {
     }
 
     //scanfile();
-    scan(&Token);                       // Get the first token from the input
-    genpreamble();
-    tree = compound_statement();
-    genAST(tree, NOREG, 0);
-    genpostamble();
-    // n = binexpr(0);                      // Parse the expression in the file
-    // printf("%d\n", interpretAST(n));     // calculate the final result
-    // generatecode(n);
-
+    scan(&Token);                           // Get the first token from the input
+    genpreamble();                          // Output the preamble
+    while (1) {                             // Parse a function and generate 
+        tree = function_declaration();      // the assembly code for this
+        genAST(tree, NOREG, 0);
+        if (Token.token == T_EOF)
+            break;
+    }
     fclose(Outfile);
     exit(0);
 }
