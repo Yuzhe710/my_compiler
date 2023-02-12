@@ -48,8 +48,33 @@ static int genIFAST(struct ASTnode *n) {
     }
 
     return NOREG;
-    
+}
 
+// Generate code for WHILE statement
+static int genWHILE(struct ASTnode *n) {
+    int Lstart, Lend;
+
+    // Generate the start and end label
+    // and output the start label
+    Lstart = label();
+    Lend = label();
+    cglabel(Lstart);
+
+    // Generate the condition code
+    // and a jump to the end label
+    // We cheat by sending the Lfalse label as a register
+    genAST(n->left, Lend, n->op);
+    genfreeregs();
+
+    // Generate the compound statement for the body
+    genAST(n->right, NOREG, n->op);
+    genfreeregs();
+
+    // Finally output the jump back to the condition
+    // and the end label
+    cgjump(Lstart);
+    cglabel(Lend);
+    return NOREG;
 
 }
 
@@ -63,6 +88,8 @@ int genAST(struct ASTnode *n, int reg, int parentASTop) {
     switch(n->op) {
         case A_IF:
             return genIFAST(n);
+        case A_WHILE:
+            return genWHILE(n);
         case A_GLUE:
             // generate for eah child,
             // and free registers after each child
@@ -100,7 +127,7 @@ int genAST(struct ASTnode *n, int reg, int parentASTop) {
             // generate a compare followed by a jump
             // Otherwise, compare registers and set one register to 0 or 1 
             // based on the comparison
-            if (parentASTop == A_IF)
+            if (parentASTop == A_IF || parentASTop == A_WHILE)
                 return cgcompare_and_jump(n->op, leftreg, rightreg, reg);
             else 
                 return cgcompare_and_set(n->op, leftreg, rightreg);

@@ -66,6 +66,9 @@ struct ASTnode *compound_statement(void) {
             case T_IF:
                 tree = if_statement();
                 break;
+            case T_WHILE:
+                tree = while_statement();
+                break;
             case T_RBRACE:
                 // When hit a right curly bracket
                 // Skip past it and return the AST
@@ -160,4 +163,25 @@ struct ASTnode *assignment_statement(void) {
 
     matchsemi();
     return tree;
+}
+
+struct ASTnode *while_statement(void) {
+    struct ASTnode *condAST, *bodyAST;
+
+    // Firstly we match "while" keyword and left paren
+    match(T_WHILE, "while");
+    matchlparen();
+
+    // Parse the condition expression
+    condAST = binexpr(0);
+    if (condAST->op < A_EQ || condAST->op > A_GE)
+        fatal("Bad comparison operator");
+    matchrparen();
+
+    // Parse the body compound statement
+    bodyAST = compound_statement();
+
+
+    return mkastnode(A_WHILE, condAST, NULL, bodyAST, 0);
+
 }
