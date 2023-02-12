@@ -2,6 +2,27 @@
 #include "scan.h"
 #include "decl.h"
 
+// Parse a single statement and return its AST
+struct ASTnode *single_statement(void) {
+    switch(Token.token) {
+        case T_PRINT:
+            return print_statement();
+        case T_INT:
+            var_declaration();
+            return NULL;
+        case T_IDENT:
+            return assignment_statement();
+        case T_IF:
+            return if_statement();
+        case T_WHILE:
+            return while_statement();
+        case T_FOR:
+            return for_statement();
+        default:
+            fatald("Syntax error, token", Token.token);
+    }
+}
+
 // The Part 8 BNF grammar
 // compound_statement:
 //      |   statement
@@ -52,40 +73,32 @@ struct ASTnode *compound_statement(void) {
     matchlbrace();
 
     while (1) {
-        switch (Token.token) {
-            case T_PRINT:
-                tree = print_statement();
-                break;
-            case T_INT:
-                var_declaration();
-                tree = NULL;
-                break;
-            case T_IDENT:
-                tree = assignment_statement();
-                break;
-            case T_IF:
-                tree = if_statement();
-                break;
-            case T_WHILE:
-                tree = while_statement();
-                break;
-            case T_RBRACE:
-                // When hit a right curly bracket
-                // Skip past it and return the AST
-                matchrbrace();
-                return left;
-            default:
-                fatald("Syntax error, token", Token.token);
+
+        // Parse a single statement
+        tree = single_statement();
+
+        // if the single statement is print statement or assignment statement, 
+        // need to match the semicolon at last.
+        if (tree != NULL && (tree->op == A_ASSIGN || tree->op == A_PRINT)) {
+            matchsemi();
         }
 
-        if (tree) {
+        // For each new tree, either save it as left if left is empty
+        // or glue left and tree together
+        if (tree != NULL) {
             if (left == NULL)
                 left = tree;
             else
                 left = mkastnode(A_GLUE, left, NULL, tree, 0);
         }
-    }
 
+        // When we hit a right curly bracket, 
+        // skip it and return AST
+        if (Token.token == T_RBRACE) {
+            matchrbrace();
+            return left;
+        }
+    }
 }
 
 struct ASTnode *if_statement(void) {
@@ -133,9 +146,6 @@ struct ASTnode *print_statement(void) {
     // make a print AST tree
     tree = mkastunary(A_PRINT, tree, 0);
 
-    // Match the following semicolon
-    matchsemi();
-
     return tree;
 }
 
@@ -161,7 +171,6 @@ struct ASTnode *assignment_statement(void) {
     // printf("yes %s\n", Gsym[id]->name);
     tree = mkastnode(A_ASSIGN, left, NULL, right, 0);
 
-    matchsemi();
     return tree;
 }
 
@@ -184,4 +193,57 @@ struct ASTnode *while_statement(void) {
 
     return mkastnode(A_WHILE, condAST, NULL, bodyAST, 0);
 
+}
+
+// Parse a FOR statement and return its AST
+struct ASTnode* for_statement(void) {
+    struct ASTnode *condAST, *bodyAST;
+    struct ASTnode *preopAST, *postopAST;
+    struct ASTnode *tree;
+
+    // Firstly match keyword 'for' and '('
+    match(T_FOR, "for");
+    matchlparen();
+
+    // get the pre_op statement and ;
+    preopAST = single_statement();
+    matchsemi();
+
+    // get the condition statement and ;
+    condAST = binexpr(0);
+    if (condAST->op < A_EQ || condAST->op > A_GE)
+        fatal("Bad comparison operator");
+    matchsemi();
+
+    // get the post_op statement and the ')'
+    postopAST = single_statement();
+    matchrparen();
+
+    // get the body compound statement
+    bodyAST = compound_statement();
+
+    // A FOR statement (pre_op; condition; post_op) {body}
+    // can be transformed into a WHILE statement
+    // pre_op
+    // while (condition) {
+    //    body
+    //    post_op
+    // }
+    // So we can just use while statemeht, and glue pre_op, condition, body, post_op together
+    // such as
+    //              
+    //              A_GLUE
+    //              /     \
+    //          preop     A_WHILE
+    //                     /    \
+    //               decision  A_GLUE
+    //                         /    \
+    //                     compound  postop
+    tree = mkastnode(A_GLUE, bodyAST, NULL, postopAST, 0);
+
+    tree = mkastnode(A_WHILE, condAST, NULL, tree, 0);
+
+    tree = mkastnode(A_GLUE, preopAST, NULL, tree, 0);
+
+    return tree;
 }

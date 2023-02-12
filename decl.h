@@ -41,11 +41,13 @@ void cgjump(int l);
 
 
 // stmt.c
+struct ASTnode *single_statement(void);
 struct ASTnode *compound_statement(void);
 struct ASTnode *print_statement(void);
 struct ASTnode *if_statement(void);
 struct ASTnode *assignment_statement(void);
 struct ASTnode *while_statement(void);
+struct ASTnode *for_statement(void);
 
 // misc.c
 void match(int t, char *what);
