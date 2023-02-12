@@ -49,7 +49,6 @@ void main(int argc, char *argv[]) {
         Gsym[i] = (struct symtable *)malloc(sizeof(struct symtable));
     }
 
-
     init();
 
     // Open up the input file
