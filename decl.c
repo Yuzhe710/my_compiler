@@ -21,7 +21,6 @@ void var_declaration(void) {
     scan(&Token);
     matchident();
     id = addglob(Text,type, S_VARIABLE);
-    printf("Line %d, %s\n", Line, Text);
     genglobsym(id);
     matchsemi();
 }
