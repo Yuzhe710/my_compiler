@@ -75,5 +75,3 @@ void main(int argc, char *argv[]) {
     fclose(Outfile);
     exit(0);
 }
-
-

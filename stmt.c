@@ -7,6 +7,7 @@ struct ASTnode *single_statement(void) {
     switch(Token.token) {
         case T_PRINT:
             return print_statement();
+        case T_CHAR:
         case T_INT:
             var_declaration();
             return NULL;
@@ -89,7 +90,7 @@ struct ASTnode *compound_statement(void) {
             if (left == NULL)
                 left = tree;
             else
-                left = mkastnode(A_GLUE, left, NULL, tree, 0);
+                left = mkastnode(A_GLUE, P_NONE, left, NULL, tree, 0);
         }
 
         // When we hit a right curly bracket, 
@@ -127,12 +128,13 @@ struct ASTnode *if_statement(void) {
     }
     
     // build and return the AST for if statement
-    return mkastnode(A_IF, condAST, trueAST, falseAST, 0);
+    return mkastnode(A_IF, P_NONE, condAST, trueAST, falseAST, 0);
 
 }
 
 struct ASTnode *print_statement(void) {
     struct ASTnode *tree;
+    int lefttype, righttype;
     int reg;
 
     // Match a 'print' as the first token
@@ -142,9 +144,18 @@ struct ASTnode *print_statement(void) {
     // generate the assembly code
     tree = binexpr(0);
     // printf("%d\n", tree->op);
+    
+    // Ensure two types are compatible
+    lefttype = P_INT;
+    righttype = tree->type;
+    if (!type_compatible(&lefttype, &righttype, 0))
+        fatal("Incompatible types");
 
+    // Widen the tree if required, when printing a char
+    if (righttype)
+        tree = mkastunary(righttype, P_INT, tree, 0);
     // make a print AST tree
-    tree = mkastunary(A_PRINT, tree, 0);
+    tree = mkastunary(A_PRINT, P_NONE, tree, 0);
 
     return tree;
 }
@@ -152,6 +163,7 @@ struct ASTnode *print_statement(void) {
 // In assignment, identifier is the rvalue. the operation for the rvalue node is A_LVIDENT
 struct ASTnode *assignment_statement(void) {
     struct ASTnode *left, *right, *tree;
+    int lefttype, righttype;
     int id;
 
     // Ensure we have an identifier
@@ -162,14 +174,25 @@ struct ASTnode *assignment_statement(void) {
         fatals("Undeclared variable", Text);
     }
     // printf("%s\n", Gsym[id]->name);
-    right = mkastleaf(A_LVIDENT, id);
+    right = mkastleaf(A_LVIDENT, Gsym[id]->type, id);
 
     match(T_ASSIGN, "=");
 
     // Rvalue expression needs to be evaluated before saved to variable, make it left tree.
     left = binexpr(0);
-    // printf("yes %s\n", Gsym[id]->name);
-    tree = mkastnode(A_ASSIGN, left, NULL, right, 0);
+
+    // Ensure the two types are compatible
+    lefttype = left->type;
+    righttype = right->type;
+    if (!type_compatible(&lefttype, &righttype, 1)) // a wide value (expression) cannot be assigned to a narrow variable
+        fatal("Incompatible types");
+    
+    // Widen the left if required
+    if (lefttype)
+        left = mkastunary(lefttype, right->type, left, 0);
+    
+    // Make an assignment AST tree
+    tree = mkastnode(A_ASSIGN, P_INT, left, NULL, right, 0);
 
     return tree;
 }
@@ -191,7 +214,7 @@ struct ASTnode *while_statement(void) {
     bodyAST = compound_statement();
 
 
-    return mkastnode(A_WHILE, condAST, NULL, bodyAST, 0);
+    return mkastnode(A_WHILE, P_NONE, condAST, NULL, bodyAST, 0);
 
 }
 
@@ -239,11 +262,11 @@ struct ASTnode* for_statement(void) {
     //               decision  A_GLUE
     //                         /    \
     //                     compound  postop
-    tree = mkastnode(A_GLUE, bodyAST, NULL, postopAST, 0);
+    tree = mkastnode(A_GLUE, P_NONE, bodyAST, NULL, postopAST, 0);
 
-    tree = mkastnode(A_WHILE, condAST, NULL, tree, 0);
+    tree = mkastnode(A_WHILE, P_NONE, condAST, NULL, tree, 0);
 
-    tree = mkastnode(A_GLUE, preopAST, NULL, tree, 0);
+    tree = mkastnode(A_GLUE, P_NONE, preopAST, NULL, tree, 0);
 
     return tree;
 }

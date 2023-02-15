@@ -10,7 +10,12 @@ static struct ASTnode *getleft(void) {
     // scan in the next token, otherwise, generate a syntax error
     switch (Token.token) {
         case T_INTLIT:
-            n = mkastleaf(A_INTLIT, Token.intvalue);
+            // For an INTLIT token, make a leaf AST node for it
+            // Make it a P_CHAR if it is within P_CHAR range (0..255)
+            if (Token.intvalue >= 0 && Token.intvalue < 256)
+                n = mkastleaf(A_INTLIT, P_CHAR, Token.intvalue);
+            else    
+                n = mkastleaf(A_INTLIT, P_INT, Token.intvalue);
             break;
         case T_IDENT:
             // check that this identifier exists
@@ -19,7 +24,7 @@ static struct ASTnode *getleft(void) {
                 fatals("Unknown variable", Text);
             //printf("%s\n", Gsym[id]->name);
             // Make a leaf AST node for it
-            n = mkastleaf(A_IDENT, id);
+            n = mkastleaf(A_IDENT, Gsym[id]->type, id);
             break;
         default:
             fatald("Syntax error, token", Token.token);
@@ -62,7 +67,7 @@ static int op_precedence(int tokentype) {
 // Parameter ptp is the previous token's precedence
 struct ASTnode *binexpr(int ptp) {
     struct ASTnode *left, *right;
-
+    int lefttype, righttype;
     int tokentype;
     //printf("%d\n", Token.intvalue);
     // Get the integer literal on the left
@@ -84,8 +89,20 @@ struct ASTnode *binexpr(int ptp) {
         // precedence of our token to build a sub-tree
         right = binexpr(OpPrec[tokentype]);
 
+        // ensure the two types are compatible
+        lefttype = left->type;
+        righttype = right->type;
+        if (!type_compatible(&lefttype, &righttype, 0)) 
+            fatal("Incompatible types");
+        
+        // Widen either side if required, type vars are A_WIDEN now
+        if (lefttype)
+            left = mkastunary(lefttype, right->type, left, 0);
+        if (righttype)
+            right = mkastunary(righttype, left->type, right, 0);
+        
         // Join that sub-tree with ours
-        left = mkastnode(getoperation(tokentype), left, NULL, right, 0);
+        left = mkastnode(getoperation(tokentype), left->type, left, NULL, right, 0);
 
         // update the tokentype to be the type of current token
         // If we hit a semi-colon, just return the left node
