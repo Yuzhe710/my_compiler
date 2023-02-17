@@ -63,6 +63,8 @@ void main(int argc, char *argv[]) {
         exit(1);
     }
 
+    // For now, ensure that void printint() is defined
+    addglob("printint", P_CHAR, S_FUNCTION, 0);
     //scanfile();
     scan(&Token);                           // Get the first token from the input
     genpreamble();                          // Output the preamble
