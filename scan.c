@@ -104,27 +104,55 @@ static int keyword(char *s) {
                 return T_IF;
             }
             break;
+        case 'l':
+            if (!strcmp(s, "long")) {
+                return T_LONG;
+            }
+            break;
         case 'p':
             if (!strcmp(s, "print")) {
-                return (T_PRINT);
+                return T_PRINT;
+            }
+            break;
+        case 'r':
+            if (!strcmp(s, "return")) {
+                return T_RETURN;
             }
             break;
         case 'v':
             if (!strcmp(s, "void")) {
-                return (T_VOID);
+                return T_VOID;
             }
             break;
         case 'w':
             if (!strcmp(s, "while")) {
-                return (T_WHILE);
+                return T_WHILE;
             }
             break;
     }
     return 0;
 }
 
+// A pointer to a rejected token
+static struct token *Rejtoken = NULL;
+
+// reject the token we just scanned
+void reject_token(struct token *t) {
+    if (Rejtoken != NULL)
+        fatal("Can't reject token twice");
+    Rejtoken = t;
+}
+
+
 int scan(struct token *t) {
     int c, tokentype;
+
+    // If we have any rejected token, return it
+    if (Rejtoken != NULL) {
+        t = Rejtoken;
+        Rejtoken = NULL;
+        return 1;
+    }
 
     // skip
     c = skip();

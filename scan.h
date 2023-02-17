@@ -16,6 +16,7 @@ extern FILE *Outfile;
 extern struct token Token;      // Last token scanned
 extern char *Text;              // a buffer contains Last identifier scanned
 extern struct symtable *Gsym[1024];   // Gobal symbol table
+extern int Functionid;          // Symbol id of the current function
 // #ifndef extern_
 // #define extern_ extern
 // #endif

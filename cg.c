@@ -9,6 +9,7 @@
 static int freereg[4];  // 1 means available, 0 means unavailable
 static char *reglist[4] = {"%r8", "%r9", "%r10", "%r11"};
 static char *breglist[4] = {"%r8b", "%r9b", "%r10b", "%r11b"};
+static char *dreglist[4] = {"%r8d", "%r9d", "%r10d", "%r11d"};
 
 // List of comparison instructions
 // in AST order: A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE
@@ -46,23 +47,12 @@ static void free_register(int reg) {
 // Print out the assembly preamble
 void cgpreamble() {
   freeall_registers();
-  fputs("\t.text\n"
-	".LC0:\n"
-	"\t.string\t\"%d\\n\"\n"
-	"printint:\n"
-	"\tpushq\t%rbp\n"
-	"\tmovq\t%rsp, %rbp\n"
-	"\tsubq\t$16, %rsp\n"
-	"\tmovl\t%edi, -4(%rbp)\n"
-	"\tmovl\t-4(%rbp), %eax\n"
-	"\tmovl\t%eax, %esi\n"
-	"\tleaq	.LC0(%rip), %rdi\n"
-	"\tmovl	$0, %eax\n"
-	"\tcall	printf@PLT\n" "\tnop\n" "\tleave\n" "\tret\n" "\n", Outfile);
+  fputs("\t.text\n", Outfile);
 }
 
 // Print out a function preamble
-void cgfuncpreamble(char *name) {
+void cgfuncpreamble(int id) {
+  char *name = Gsym[id]->name;
   fprintf(Outfile,
 	  "\t.text\n"
 	  "\t.globl\t%s\n"
@@ -72,8 +62,9 @@ void cgfuncpreamble(char *name) {
 }
 
 // Print out a function postamble
-void cgfuncpostamble() {
-  fputs("\tmovl	$0, %eax\n" "\tpopq	%rbp\n" "\tret\n", Outfile);
+void cgfuncpostamble(int id) {
+  cglabel(Gsym[id]->endlabel);
+  fputs("\tpopq	%rbp\n" "\tret\n", Outfile);
 }
 
 
@@ -96,12 +87,19 @@ int cgloadglob(int id) {
   int r = alloc_register();
 
   // Print out the code to initialise it: P_CHAR or P_INT
-  if (Gsym[id]->type == P_INT)
-    // movq will move 8 bytes into the 8-byte register
-    fprintf(Outfile, "\tmovq\t%s(\%%rip), %s\n", Gsym[id]->name, reglist[r]);
-  else  
-    // movzbq zeros the 8 byte register and moves a single byte into it (which widens one byte into 8 bytes)
-    fprintf(Outfile, "\tmovzbq\t%s(\%%rip), %s\n", Gsym[id]->name, reglist[r]);
+  switch (Gsym[id]->type) {
+    case P_CHAR:
+      fprintf(Outfile, "\tmovzbq\t%s(\%%rip), %s\n", Gsym[id]->name, reglist[r]);
+      break;
+    case P_INT:
+      fprintf(Outfile, "\tmovzbl\t%s(\%%rip), %s\n", Gsym[id]->name, reglist[r]);
+      break;
+    case P_LONG:
+      fprintf(Outfile, "\tmovq\t%s(\%%rip), %s\n", Gsym[id]->name, reglist[r]);
+      break;
+    default:
+      fatald("Bad type in cgloadglob:", Gsym[id]->type);
+  }
   return (r);
 }
 
@@ -149,22 +147,29 @@ void cgprintint(int r) {
 
 // Store a register's value into a variable
 int cgstorglob(int r, int id) {
-  // Choose P_INT or P_CHAR
-  if (Gsym[id]->type == P_INT)
-    fprintf(Outfile, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], Gsym[id]->name);
-  else  
-    // movb moves a single byte
-    fprintf(Outfile, "\tmovb\t%s, %s(\%%rip)\n", breglist[r], Gsym[id]->name);
+  switch(Gsym[id]->type) {
+    case P_CHAR:
+      fprintf(Outfile, "\tmovb\t%s, %s(\%%rip)\n", breglist[r], Gsym[id]->name);
+      break;
+    case P_INT:
+      fprintf(Outfile, "\tmovl\t%s, %s(\%%rip)\n", dreglist[r], Gsym[id]->name);
+      break;
+    case P_LONG:
+      fprintf(Outfile, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], Gsym[id]->name);
+      break;
+    default:
+      fatald("Bad type in cgloadglob:", Gsym[id]->type);
+  }
   return (r);
 }
 
 // Generate a global symbol (allocate memory for variable, 8 byte for P_INT, i byte for P_CHAR)
 void cgglobsym(int id) {
-  // Choose P_INT or P_CHAR
-  if (Gsym[id]->type == P_INT)
-    fprintf(Outfile, "\t.comm\t%s,8,8\n", Gsym[id]->name);
-  else 
-    fprintf(Outfile, "\t.comm\t%s,1,1\n", Gsym[id]->name);
+  int typesize;
+  // Get the size of the type
+  typesize = cgprimsize(Gsym[id]->type);
+
+  fprintf(Outfile, "\t.comm\t%s,%d,%d\n", Gsym[id]->name, typesize, typesize);
 }
 
 // compare two registers and set if true
@@ -213,3 +218,50 @@ int cgwiden(int r, int oldtype, int newtype) {
   // Nothing to do
   return r;
 }
+
+// Array of type sizes in P_XXX order
+// 0 means no size, P_NONE, P_VOID, P_CHAR, P_INT, P_LONG
+static int psize[] = {0, 0, 1, 4, 8};
+
+// Given a P_XXX type value, return the
+// size of a primitive type in bytes
+int cgprimsize(int type) {
+  // Check the type is valid
+  if (type < P_NONE || type > P_LONG)
+    fatal("Bad type in cgprimsize()");
+  return psize[type];
+}
+
+// Call a function with one argument from the given register
+// Return the register with the result
+// In x86-64, we need to copy the register with the argument value into %rdi
+// On returnm we need to copy the returned value from %rax into the register that will have this new value
+int cgcall(int r, int id) {
+  // Get a new register
+  int outr = alloc_register();
+  fprintf(Outfile, "\tmovq\t%s, %%rdi\n", reglist[r]);
+  fprintf(Outfile, "\tcall\t%s\n", Gsym[id]->name);
+  fprintf(Outfile, "\tmovq\t%%rax, %s\n", reglist[outr]);
+  free_register(r);
+  return outr;
+}
+
+// Generate code to return a value from a function
+void cgreturn(int reg, int id) {
+  // Generate code depending on the function's type
+  switch (Gsym[id]->type) {
+    case P_CHAR:
+      fprintf(Outfile, "\tovzbl\t%s, %%eax\n", breglist[reg]);
+      break;
+    case P_INT:
+      fprintf(Outfile, "\tmovl\t%s, %%eax\n", dreglist[reg]);
+      break;
+    case P_LONG:
+      fprintf(Outfile, "\tmovq\t%s, %%rax\n", reglist[reg]);
+      break;
+    default:
+      fatald("Bad function type in cgreturn:", Gsym[id]->type);
+  }
+  cgjump(Gsym[id]->endlabel);
+}
+

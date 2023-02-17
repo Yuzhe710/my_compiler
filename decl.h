@@ -1,6 +1,7 @@
 
 // scan.c
 int scan(struct token *t);
+void reject_token(struct token* t);
 
 // tree.c
 struct ASTnode *mkastnode(int op, int type, struct ASTnode *left, struct ASTnode *mid, struct ASTnode *right, int intvalue);
@@ -9,6 +10,7 @@ struct ASTnode *mkastunary(int op, int type, struct ASTnode *left, int intvalue)
 
 // expr.c
 struct ASTnode *binexpr(int rbp);
+struct ASTnode *funccall(void);
 
 // gen.c
 int genAST(struct ASTnode *n, int reg, int parentASTop);
@@ -16,6 +18,9 @@ void genpreamble();
 void genfreeregs();
 void genprintint(int reg);
 void genglobsym(int id);
+int genlabel(void);
+int genprimsize(int type);
+
 
 //int interpretAST(struct ASTnode *n);
 // void generatecode(struct ASTnode *n);
@@ -23,8 +28,8 @@ void genglobsym(int id);
 //cg.c
 void freeall_registers(void);
 void cgpreamble();
-void cgfuncpreamble(char *name);
-void cgfuncpostamble();
+void cgfuncpreamble(int id);
+void cgfuncpostamble(int id);
 int cgloadint(int value, int type);
 int cgloadglob(int id);
 int cgadd(int r1, int r2);
@@ -39,6 +44,9 @@ int cgcompare_and_jump(int ASTop, int r1, int r2, int label);
 void cglabel(int l);
 void cgjump(int l);
 int cgwiden(int r, int oldtype, int newtype);
+int cgprimsize(int type);
+int cgcall(int r, int id);
+void cgreturn(int reg, int id);
 
 // stmt.c
 struct ASTnode *single_statement(void);
@@ -48,6 +56,7 @@ struct ASTnode *if_statement(void);
 struct ASTnode *assignment_statement(void);
 struct ASTnode *while_statement(void);
 struct ASTnode *for_statement(void);
+static struct ASTnode *return_statement(void);
 
 // misc.c
 void match(int t, char *what);
@@ -64,7 +73,7 @@ void fatalc(char *s, int c);
 
 // sym.c
 int findglob(char *s);
-int addglob(char* name, int type, int stype);
+int addglob(char* name, int type, int stype, int endlabel);
 
 // decl.c
 int parse_type(int t);

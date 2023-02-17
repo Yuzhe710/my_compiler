@@ -20,26 +20,42 @@ void var_declaration(void) {
     type = parse_type(Token.token);
     scan(&Token);
     matchident();
-    id = addglob(Text,type, S_VARIABLE);
+    id = addglob(Text,type, S_VARIABLE, 0);
     genglobsym(id);
     matchsemi();
 }
 
 // Parse the declaration of a simplistic function
 struct ASTnode *function_declaration(void) {
-    struct ASTnode *tree;
-    int nameslot;
+    struct ASTnode *tree, *finalstmt;
+    int nameslot, type, endlabel;
 
-    // Find 'void', the identifier, and the '(' and ')'
-    // For now, do nothing with them
-    match(T_VOID, "void");
+    // Get the type of the variable, then the identifier
+    type = parse_type(Token.token);
+    scan(&Token);
     matchident();
-    nameslot = addglob(Text, P_VOID, S_FUNCTION);
+    
+    // Get a label id for the end label (which can be jumped to)
+    // Add the function to the symbol table
+    // and set the Functional global to the function's symbol id
+    endlabel = genlabel();
+    nameslot = addglob(Text, type, S_FUNCTION, endlabel);
+    Functionid = nameslot;
+
     matchlparen();
     matchrparen();
 
     // Get the AST for the body
     tree = compound_statement();
+
+    // If the function type is not P_VOID, check that
+    // the last AST operation in the compound statement was a return
+    // statement
+    if (type != P_VOID) {
+        finalstmt = (tree->op == A_GLUE) ? tree->right : tree;
+        if (finalstmt == NULL || finalstmt->op != A_RETURN)
+            fatal("No return for function with non-void type");
+    }
 
     // Return an A_FUNCTION node which has the function's nameslot
     // and the compound statement sub-tree
