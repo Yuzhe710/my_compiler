@@ -92,7 +92,7 @@ int cgloadglob(int id) {
       fprintf(Outfile, "\tmovzbq\t%s(\%%rip), %s\n", Gsym[id]->name, reglist[r]);
       break;
     case P_INT:
-      fprintf(Outfile, "\tmovzbl\t%s(\%%rip), %s\n", Gsym[id]->name, reglist[r]);
+      fprintf(Outfile, "\tmovzbl\t%s(\%%rip), %s\n", Gsym[id]->name, dreglist[r]);
       break;
     case P_LONG:
       fprintf(Outfile, "\tmovq\t%s(\%%rip), %s\n", Gsym[id]->name, reglist[r]);
@@ -251,7 +251,7 @@ void cgreturn(int reg, int id) {
   // Generate code depending on the function's type
   switch (Gsym[id]->type) {
     case P_CHAR:
-      fprintf(Outfile, "\tovzbl\t%s, %%eax\n", breglist[reg]);
+      fprintf(Outfile, "\tmovzbl\t%s, %%eax\n", breglist[reg]);
       break;
     case P_INT:
       fprintf(Outfile, "\tmovl\t%s, %%eax\n", dreglist[reg]);
