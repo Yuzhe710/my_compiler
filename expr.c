@@ -109,11 +109,10 @@ struct ASTnode *prefix(void) {
     struct ASTnode *tree;
     switch (Token.token) {
         case T_AMPER:
-            // printf("Token this place is %d\n", Token.token);
             // Get the next token and parse it recursively
             // as a prefix expression
             scan(&Token);
-            //printf("Token next is %d\n", Token.token);
+
             tree = prefix();
 
             // Ensure the next token is an identifier
@@ -128,7 +127,6 @@ struct ASTnode *prefix(void) {
         case T_STAR:
             // Get the next token and parse it recursively
             // as a prefix expression
-            // printf("Token *\n");
             scan(&Token);
             tree = prefix();
 
@@ -141,7 +139,6 @@ struct ASTnode *prefix(void) {
             tree = mkastunary(A_DEREF, value_at(tree->type), tree, 0);
             break;
         default:
-            // printf("Token here is %d\n", Token.token);
             tree = getleft();
     }
     return tree;
