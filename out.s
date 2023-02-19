@@ -1,9 +1,9 @@
 	.text
 	.comm	a,1,1
-	.comm	b,0,0
+	.comm	b,8,8
 	.comm	c,1,1
 	.comm	d,4,4
-	.comm	e,0,0
+	.comm	e,8,8
 	.comm	f,4,4
 	.text
 	.globl	main
