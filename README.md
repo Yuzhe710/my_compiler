@@ -117,4 +117,101 @@ Step 2: gcc -o out out.s
 Step 3: ./out  
   
 ## Part_6 Variables  
-...  
+This part we add variables. We are able to:  
+1. Declare variables  
+2. Use variables to get stored values  
+3. Assign to variables  
+  
+---------------------------------------------------------------------  
+A sample input:  
+  
+int fred;  
+int jim;  
+fred = 5;  
+jim = 12;  
+print fred + jim;  
+  
+---------------------------------------------------------------------  
+We firstly define a symbol table structure, it is going to store symbols (variables).  
+  
+2 new tokens are defined. (as in the example above),  '=' is known as T_EQUALS and identifier names (variable) is T_IDENT.  
+  
+Correspondently, new AST node type will be A_ASSIGN, A_IDENT and A_LVALUE (explain later)  
+--------------------------------------------------------------------  
+We also have new grammar:  
+  
+statements: statement  
+      |      statement statements  
+      ;  
+  
+ statement: 'print' expression ';'  
+      |     'int'   identifier ';'  
+      |     identifier '=' expression ';'  
+      ;  
+  
+ identifier: T_IDENT  
+      ;  
+  
+--------------------------------------------------------------------  
+  
+Hence, from the sample input, we can see 3 types of statements related to variables, namely declaration, assignment and print.  
+  
+#variable declaration:  
+We firstly match 'int', then the identifier (adds into symbol table) and finally match the semicolon.  
+  
+#assignment statement  
+When parsing an assignment statement, we first parse an identifier, then we make a leaf node for that identifier with tree value being its id in symbol table and nodetype being A_LVALUE (means the variable on the left side of the assignment statement). However, this node will be the left subtree of the assignment node (node with the nodetype A_ASSIGN), whilst the expression on the right side of the assignment statement will be the left subtree, this is because when interpreting / generating assembly, AST is evaluated from left to right. We have to know which register hold the expression value before we load that register value into the variable.  
+  
+The left sub tree (the expression) will just be evaluated as before.  
+  
+                     =  
+                    /   \  
+                   /     \  
+                  /       \  
+(A_INTLIT, 3)    (A_LVIDENT, id)  
+  
+# print statement  
+We firstly match the print keyword, then we parse the two identifiers which become the left and right subtree of the operation node.  
+  
+                     +  
+                    /   \  
+                   /     \  
+                  /       \  
+(A_IDENT, id)    (A_IDENT, id)  
+  
+--------------------------------------------------------------------    
+  
+To compile and test:  
+gcc -o comp1 -g cg.c decl.c expr.c gen.c main.c misc.c scan.c stmt.c sym.c tree.c  
+  
+./comp1 input06  
+  
+gcc -o out out.s  
+  
+./out  
+
+## Part_7 Comparison  
+This part we add some comparison operators, namely ==, !=, <, >, <= and >  
+  
+They correspond to new tokens  
+T_EQ, T_NE, T_LT, T_GT, T_LE, T_GE  
+  
+And new AST node types  
+A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE,  
+  
+So when scanning, once we meet one '=', we need to check whether the next token is e.g. > or < or ..., if yes then we found our comparison tokens, if not then we put back the next char.  
+  
+New operator also have their precedence in AST. However I am confuse at this stage about why T_EQ, T_NE has higher precedence than T_STAR, T_SLASH, and why T_LT, T_GT, T_LE, T_GE are higher than T_EQ and T_NE....(the test input does not reflect the effects of these precedence I think)  
+  
+So when generating the AST, if the node type is the comparison operator, it will call assembly to generate the comparison result of two values (two registers from left and right sub-tree). The comparison result should be just 1 or 0 in the resulting register. Assembly with different instructions (sete, setne...) are used to deal with the six new comparison operators.  
+  
+To compile and test  
+gcc -o comp1 -g cg.c decl.c expr.c gen.c main.c misc.c scan.c stmt.c sym.c tree.c  
+  
+./comp1 input07  
+  
+gcc -o out out.s  
+  
+./out (where you should see each line of statement is executed, nine 1s as the result)  
+
+
