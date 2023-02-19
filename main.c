@@ -38,7 +38,7 @@ static void scanfile() {
 }
 */
 
-void main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
     struct ASTnode *tree;
 
     if (argc != 2)
@@ -75,5 +75,5 @@ void main(int argc, char *argv[]) {
             break;
     }
     fclose(Outfile);
-    exit(0);
+    return 0;
 }

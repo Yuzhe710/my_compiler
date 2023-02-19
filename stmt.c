@@ -9,6 +9,7 @@ struct ASTnode *single_statement(void) {
             return print_statement();
         case T_CHAR:
         case T_INT:
+        case T_LONG:
             var_declaration();
             return NULL;
         case T_IDENT:
@@ -24,6 +25,7 @@ struct ASTnode *single_statement(void) {
         default:
             fatald("Syntax error, token", Token.token);
     }
+    return NULL;
 }
 
 // The Part 8 BNF grammar
@@ -138,7 +140,6 @@ struct ASTnode *if_statement(void) {
 struct ASTnode *print_statement(void) {
     struct ASTnode *tree;
     int lefttype, righttype;
-    int reg;
 
     // Match a 'print' as the first token
     match(T_PRINT, "print");
@@ -281,7 +282,7 @@ struct ASTnode* for_statement(void) {
 }
 
 // Parse a return statment and return its AST
-static struct ASTnode *return_statement(void) {
+struct ASTnode *return_statement(void) {
     struct ASTnode *tree;
     int returntype, functype;
 

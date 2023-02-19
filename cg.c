@@ -34,6 +34,7 @@ static int alloc_register(void) {
     }
   }
   fatal("Out of registers");
+  return (NOREG);		// Keep -Wall happy
 }
 
 // Return a register to the list of available registers.
@@ -95,6 +96,9 @@ int cgloadglob(int id) {
       fprintf(Outfile, "\tmovzbl\t%s(\%%rip), %s\n", Gsym[id]->name, dreglist[r]);
       break;
     case P_LONG:
+    case P_CHARPTR:
+    case P_INTPTR:
+    case P_LONGPTR:
       fprintf(Outfile, "\tmovq\t%s(\%%rip), %s\n", Gsym[id]->name, reglist[r]);
       break;
     default:
@@ -155,6 +159,9 @@ int cgstorglob(int r, int id) {
       fprintf(Outfile, "\tmovl\t%s, %s(\%%rip)\n", dreglist[r], Gsym[id]->name);
       break;
     case P_LONG:
+    case P_CHARPTR:
+    case P_INTPTR:
+    case P_LONGPTR:
       fprintf(Outfile, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], Gsym[id]->name);
       break;
     default:
@@ -227,7 +234,7 @@ static int psize[] = {0, 0, 1, 4, 8};
 // size of a primitive type in bytes
 int cgprimsize(int type) {
   // Check the type is valid
-  if (type < P_NONE || type > P_LONG)
+  if (type < P_NONE || type > P_LONGPTR)
     fatal("Bad type in cgprimsize()");
   return psize[type];
 }
@@ -265,3 +272,26 @@ void cgreturn(int reg, int id) {
   cgjump(Gsym[id]->endlabel);
 }
 
+// Generate code to load the address of a global
+// identifier into a variable. Return a new register
+int cgaddress(int id) {
+  int r = alloc_register();
+
+  // leaq instruction loads the address of named identifier
+  fprintf(Outfile, "\tleaq\t%s(%%rip), %s\n", Gsym[id]->name, reglist[r]);
+  return r;
+}
+
+int cgderef(int r, int type) {
+  switch (type) {
+    case P_CHARPTR:
+      // the (%r8) loads the value that register %8 points to
+      fprintf(Outfile, "\tmovzbq\t(%s), %s\n", reglist[r], reglist[r]);
+      break;
+    case P_INTPTR:
+    case P_LONGPTR:
+      fprintf(Outfile, "\tmovq\t(%s), %s\n", reglist[r], reglist[r]);
+      break;
+  }
+  return r;
+}

@@ -11,6 +11,7 @@ struct ASTnode *mkastunary(int op, int type, struct ASTnode *left, int intvalue)
 // expr.c
 struct ASTnode *binexpr(int rbp);
 struct ASTnode *funccall(void);
+struct ASTnode *prefix(void);
 
 // gen.c
 int genAST(struct ASTnode *n, int reg, int parentASTop);
@@ -47,6 +48,8 @@ int cgwiden(int r, int oldtype, int newtype);
 int cgprimsize(int type);
 int cgcall(int r, int id);
 void cgreturn(int reg, int id);
+int cgaddress(int id);
+int cgderef(int r, int type);
 
 // stmt.c
 struct ASTnode *single_statement(void);
@@ -56,7 +59,7 @@ struct ASTnode *if_statement(void);
 struct ASTnode *assignment_statement(void);
 struct ASTnode *while_statement(void);
 struct ASTnode *for_statement(void);
-static struct ASTnode *return_statement(void);
+struct ASTnode *return_statement(void);
 
 // misc.c
 void match(int t, char *what);
@@ -76,10 +79,12 @@ int findglob(char *s);
 int addglob(char* name, int type, int stype, int endlabel);
 
 // decl.c
-int parse_type(int t);
+int parse_type(void);
 void var_declaration(void);
 
 struct ASTnode *function_declaration(void);
 
 // types.c
 int type_compatible(int *left, int *right, int onlyright);
+int pointer_to(int type);
+int value_at(int type);

@@ -149,6 +149,7 @@ int scan(struct token *t) {
 
     // If we have any rejected token, return it
     if (Rejtoken != NULL) {
+        // printf("Reject token is %d\n", Rejtoken); 
         t = Rejtoken;
         Rejtoken = NULL;
         return 1;
@@ -220,6 +221,14 @@ int scan(struct token *t) {
                 t->token = T_GT;
             }
             break;
+        case '&':
+            if  ((c = next()) == '&') {
+                t->token = T_LOGAND;
+            } else {
+                Putback = c;
+                t->token = T_AMPER;
+            }
+            break;
         default:
             // if it is a digit, scanint
             if (isdigit(c)) {
@@ -231,7 +240,7 @@ int scan(struct token *t) {
                 scanindentifier(c, Text, TEXTLEN);
 
                 // if it is a recognised token, return that token
-                if (tokentype = keyword(Text)) {
+                if ((tokentype = keyword(Text)) != 0) {
                     t->token = tokentype;
                     break;
                 }

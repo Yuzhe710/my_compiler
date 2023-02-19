@@ -66,6 +66,7 @@ static struct ASTnode *getleft(void) {
             n = mkastleaf(A_IDENT, Gsym[id]->type, id);
             break;
         default:
+            // printf("here is %d\n", Token.token);
             fatald("Syntax error, token", Token.token);
     }
     // scan the next token and return the leaf node
@@ -81,6 +82,7 @@ int getoperation(int tokentype) {
         return tokentype;
     }
     fatald("Syntax error, token", tokentype);
+    return 0;
 }
 
 // Operator precedence for each token
@@ -100,6 +102,51 @@ static int op_precedence(int tokentype) {
     return prec;
 }
 
+// Parse a prefix expression and return
+// a sub-tree representing it
+// currently only support one * or & after an identifier
+struct ASTnode *prefix(void) {
+    struct ASTnode *tree;
+    switch (Token.token) {
+        case T_AMPER:
+            // printf("Token this place is %d\n", Token.token);
+            // Get the next token and parse it recursively
+            // as a prefix expression
+            scan(&Token);
+            //printf("Token next is %d\n", Token.token);
+            tree = prefix();
+
+            // Ensure the next token is an identifier
+            if (tree->op != A_IDENT) 
+                fatal("& operator must be followed by an identifier");
+            
+            // Change the operator to A_ADDR and the type to 
+            // a pointer to the original type
+            tree->op = A_ADDR;
+            tree->type = pointer_to(tree->type);
+            break;
+        case T_STAR:
+            // Get the next token and parse it recursively
+            // as a prefix expression
+            // printf("Token *\n");
+            scan(&Token);
+            tree = prefix();
+
+            // For now, ensure the next token is either another deference
+            // or identifier
+            if (tree->op != A_IDENT && tree->op != A_DEREF)
+                fatal("* operator must be followed by an identifier or *");
+
+            // Prepend an A_DEREF operation to the tree
+            tree = mkastunary(A_DEREF, value_at(tree->type), tree, 0);
+            break;
+        default:
+            // printf("Token here is %d\n", Token.token);
+            tree = getleft();
+    }
+    return tree;
+}
+
 
 
 // Return an AST tree whose root is a binary operator
@@ -111,7 +158,7 @@ struct ASTnode *binexpr(int ptp) {
     //printf("%d\n", Token.intvalue);
     // Get the integer literal on the left
     // get the next token at the same time
-    left = getleft();
+    left = prefix();
 
     // if hit a semi colon, just return the left node
     tokentype = Token.token;

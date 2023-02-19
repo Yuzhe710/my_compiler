@@ -20,8 +20,10 @@ enum {
     // Structural tokens
     T_INTLIT, T_SEMI, T_ASSIGN, T_IDENT,
     T_LBRACE, T_RBRACE, T_LPAREN, T_RPAREN,
+    T_AMPER, T_LOGAND,
     // other keywords
     T_PRINT, T_IF, T_ELSE, T_WHILE, T_FOR, T_RETURN
+
 };
 
 // token structure
@@ -37,12 +39,13 @@ enum {
     A_INTLIT,
     A_IDENT, A_LVIDENT, A_ASSIGN, A_PRINT,
     A_GLUE, A_IF, A_WHILE, A_FUNCTION, A_WIDEN, A_RETURN,
-    A_FUNCCALL
+    A_FUNCCALL, A_DEREF, A_ADDR
 };
 
 // Primitives types
 enum {
-    P_NONE, P_VOID, P_CHAR, P_INT, P_LONG
+    P_NONE, P_VOID, P_CHAR, P_INT, P_LONG,
+    P_VOIDPTR, P_CHARPTR, P_INTPTR, P_LONGPTR
 };
 
 // AST structure
