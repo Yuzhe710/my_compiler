@@ -31,24 +31,39 @@ int parse_type() {
 // Parse the declaration of variable
 // It must be the 'int' token followed by an identifier 
 // and a semicolon. Add the identifier to symbol table
-void var_declaration(void) {
-    int id, type;
+void var_declaration(int type) {
+    int id;
 
-    type = parse_type();
-    matchident();
-    id = addglob(Text,type, S_VARIABLE, 0);
-    genglobsym(id);
-    matchsemi();
+    while (1) {
+        // After matchident() calling scan(),
+        // Text now has the identifier's name
+        // Add it as a known identifier
+        // and generate its space in assembly
+        id = addglob(Text,type, S_VARIABLE, 0);
+        genglobsym(id);
+
+        // If the next token is a semicolon,
+        // skip it and return.
+        if (Token.token == T_SEMI) {
+            scan(&Token);
+            return;
+        }
+        // If the next token is a comma, skip it,
+        // get the identifier and loop back
+        if (Token.token == T_COMMA) {
+            scan(&Token);
+            matchident();
+            continue;
+        }
+        fatal("Missing , or ; after identifier");
+    }
 }
 
 // Parse the declaration of a simplistic function
-struct ASTnode *function_declaration(void) {
+struct ASTnode *function_declaration(int type) {
     struct ASTnode *tree, *finalstmt;
-    int nameslot, type, endlabel;
+    int nameslot, endlabel;
 
-    // Get the type of the variable, then the identifier
-    type = parse_type();
-    matchident();
     
     // Get a label id for the end label (which can be jumped to)
     // Add the function to the symbol table
@@ -67,6 +82,13 @@ struct ASTnode *function_declaration(void) {
     // the last AST operation in the compound statement was a return
     // statement
     if (type != P_VOID) {
+
+        // Error if no statements in the function
+        if (tree == NULL)
+            fatal("No statements in function with non-void type");
+        
+        // Check that the last AST operation in the
+        // compound statement was a return statement
         finalstmt = (tree->op == A_GLUE) ? tree->right : tree;
         if (finalstmt == NULL || finalstmt->op != A_RETURN)
             fatal("No return for function with non-void type");
@@ -75,4 +97,30 @@ struct ASTnode *function_declaration(void) {
     // Return an A_FUNCTION node which has the function's nameslot
     // and the compound statement sub-tree
     return mkastunary(A_FUNCTION, P_VOID, tree, nameslot);
+}
+
+// Parse one or more global declarations 
+// either variables or functions
+void global_declarations(void) {
+    struct ASTnode *tree;
+    int type;
+
+    while (1) {
+        // Firstly parse the type and identifier
+        // to see either a '(' for a function declaration
+        // or a ',' or ';' for a variable declaration.
+        type = parse_type();
+        matchident();
+        if (Token.token == T_LPAREN) {
+            tree = function_declaration(type);
+            genAST(tree, NOREG, 0);
+        } else {
+            // Parse the global variable declaration
+            var_declaration(type);
+        }
+
+        // Stop when we have reached EOF
+        if (Token.token == T_EOF)
+            break;
+    }
 }

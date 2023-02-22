@@ -39,7 +39,6 @@ static void scanfile() {
 */
 
 int main(int argc, char *argv[]) {
-    struct ASTnode *tree;
 
     if (argc != 2)
         usage(argv[0]);
@@ -68,12 +67,7 @@ int main(int argc, char *argv[]) {
     //scanfile();
     scan(&Token);                           // Get the first token from the input
     genpreamble();                          // Output the preamble
-    while (1) {                             // Parse a function and generate 
-        tree = function_declaration();      // the assembly code for this
-        genAST(tree, NOREG, 0);
-        if (Token.token == T_EOF)
-            break;
-    }
+    global_declarations();
     fclose(Outfile);
     return 0;
 }

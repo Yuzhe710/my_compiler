@@ -4,13 +4,16 @@
 
 // Parse a single statement and return its AST
 struct ASTnode *single_statement(void) {
+    int type;
     switch(Token.token) {
         case T_PRINT:
             return print_statement();
         case T_CHAR:
         case T_INT:
         case T_LONG:
-            var_declaration();
+            type = parse_type();
+            matchident();
+            var_declaration(type);
             return NULL;
         case T_IDENT:
             return assignment_statement();

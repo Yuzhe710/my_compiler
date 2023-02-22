@@ -80,9 +80,10 @@ int addglob(char* name, int type, int stype, int endlabel);
 
 // decl.c
 int parse_type(void);
-void var_declaration(void);
+void var_declaration(int type);
+void global_declarations(void);
 
-struct ASTnode *function_declaration(void);
+struct ASTnode *function_declaration(int type);
 
 // types.c
 int type_compatible(int *left, int *right, int onlyright);
