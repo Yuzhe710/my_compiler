@@ -50,6 +50,7 @@ int cgcall(int r, int id);
 void cgreturn(int reg, int id);
 int cgaddress(int id);
 int cgderef(int r, int type);
+int cgshlconst(int r, int val);
 
 // stmt.c
 struct ASTnode *single_statement(void);
@@ -89,3 +90,6 @@ struct ASTnode *function_declaration(int type);
 int type_compatible(int *left, int *right, int onlyright);
 int pointer_to(int type);
 int value_at(int type);
+int inttype(int type);
+int ptrtype(int type);
+struct ASTnode *modify_type(struct ASTnode *tree, int rtype, int op);

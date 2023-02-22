@@ -39,7 +39,7 @@ enum {
     A_INTLIT,
     A_IDENT, A_LVIDENT, A_ASSIGN, A_PRINT,
     A_GLUE, A_IF, A_WHILE, A_FUNCTION, A_WIDEN, A_RETURN,
-    A_FUNCCALL, A_DEREF, A_ADDR
+    A_FUNCCALL, A_DEREF, A_ADDR, A_SCALE
 };
 
 // Primitives types
@@ -55,10 +55,15 @@ struct ASTnode {
     struct ASTnode *left;       // left, mid and right child trees
     struct ASTnode *mid;
     struct ASTnode *right;
-    int intvalue;               
+    // For A_INTLIT, the integer value
+    // For A_IDENT, the symbol slot number
+    // For A_FUNCTION, the symbol slot number
+    // For A_SCALE, the size to scale by
+    // For A_FUNCCALL, the 
     union {
         int intvalue;           // for A_INTLIT, the integer value
         int id;                 // for A_IDENT, the symbol slot number
+        int size;               // for A_SCALE, the symbol slot number
     } v;
 };
 

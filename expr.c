@@ -150,7 +150,8 @@ struct ASTnode *prefix(void) {
 // Parameter ptp is the previous token's precedence
 struct ASTnode *binexpr(int ptp) {
     struct ASTnode *left, *right;
-    int lefttype, righttype;
+    struct ASTnode *ltemp, *rtemp;
+    int ASTop;
     int tokentype;
     //printf("%d\n", Token.intvalue);
     // Get the integer literal on the left
@@ -171,18 +172,17 @@ struct ASTnode *binexpr(int ptp) {
         // recursively call binexpr() with 
         // precedence of our token to build a sub-tree
         right = binexpr(OpPrec[tokentype]);
-
-        // ensure the two types are compatible
-        lefttype = left->type;
-        righttype = right->type;
-        if (!type_compatible(&lefttype, &righttype, 0)) 
-            fatal("Incompatible types");
-        
-        // Widen either side if required, type vars are A_WIDEN now
-        if (lefttype)
-            left = mkastunary(lefttype, right->type, left, 0);
-        if (righttype)
-            right = mkastunary(righttype, left->type, right, 0);
+        // Ensure the two types are compatible by trying
+        // to modify each tree to match the other's type.
+        ASTop = getoperation(tokentype);
+        ltemp = modify_type(left, right->type, ASTop);
+        rtemp = modify_type(right, left->type, ASTop);
+        if (ltemp == NULL && rtemp == NULL)
+            fatal("Incompatible types in binary expression");
+        if (ltemp != NULL)
+            left = ltemp;
+        if (rtemp != NULL)
+            right = rtemp;
         
         // Join that sub-tree with ours
         left = mkastnode(getoperation(tokentype), left->type, left, NULL, right, 0);

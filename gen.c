@@ -163,6 +163,19 @@ int genAST(struct ASTnode *n, int reg, int parentASTop) {
             return cgaddress(n->v.id);
         case A_DEREF:
             return cgderef(leftreg, n->left->type);
+        case A_SCALE:
+            // Optimisation trick: use shift 
+            // if the scale value is a known power of 2
+            switch (n->v.size) {
+                case 2: return cgshlconst(leftreg, 1);
+                case 4: return cgshlconst(leftreg, 2);
+                case 8: return cgshlconst(leftreg, 3);
+                default:
+                    // Load a register with the size 
+                    // and multiply the leftreg by this size
+                    rightreg = cgloadint(n->v.size, P_INT);
+                    return cgmul(leftreg, rightreg);
+            }
         default:
             fatald("Unknown AST operator", n->op);
     }

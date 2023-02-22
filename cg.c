@@ -297,3 +297,9 @@ int cgderef(int r, int type) {
   }
   return r;
 }
+
+// Shift a register left by a constant
+int cgshlconst(int r, int val) {
+  fprintf(Outfile, "\tsalq\t$%d, %s\n", val, reglist[r]);
+  return r;
+}
