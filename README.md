@@ -644,3 +644,54 @@ gcc -o comp1 -g -Wall cg.c decl.c expr.c gen.c main.c misc.c scan.c stmt.c sym.c
 gcc -o out out.s lib/printint.c  
   
 ./out  
+
+## Part_15 Global variables  
+This part we aim to declare global variables properly. Previously, only thing we can do is declare variables. We also can declare multiple vars at the same time (e.g. in a same line, seperated by comma). Like this:  
+  
+```
+int x, y, z;  
+```  
+  
+Here is the new BNF grammar for global declarations, both functions and variables:  
+```
+global_declarations : global_declarations 
+      | global_declaration global_declarations
+      ;
+
+ global_declaration: function_declaration | var_declaration ;
+
+ function_declaration: type identifier '(' ')' compound_statement   ;
+
+ var_declaration: type identifier_list ';'  ;
+
+ type: type_keyword opt_pointer  ;
+ 
+ type_keyword: 'void' | 'char' | 'int' | 'long'  ;
+ 
+ opt_pointer: <empty> | '*' opt_pointer  ;
+ 
+ identifier_list: identifier | identifier ',' identifier_list ;
+```  
+We now have a new token T_COMMA, indicating ","  
+  
+--------------------------------------------------------------------  
+  
+Two places that need to have major changes. 
+  
+Firstly, we need to have a function called **global_declarations()**, it has a while loop in which multiple vars and/or functions are defined.  
+  
+Secondly, in the **var_declaration()**, a while loop is also needed to parse multiple identifiers. When we have T_SEMI after one identifier is parsed, if the next token is T_COMMA, we continue the loop, if the next token is T_SEMI, the loop is aborted.  
+  
+To compile and test:  
+gcc -o comp1 -g -Wall cg.c decl.c expr.c gen.c main.c misc.c scan.cstmt.c sym.c tree.c types.c  
+  
+--------------------------------------------------------------------  
+  
+./comp1 input16.c  
+  
+gcc -o out out.s lib/printint.c  
+  
+./out  
+
+
+
