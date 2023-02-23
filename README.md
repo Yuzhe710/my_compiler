@@ -693,5 +693,15 @@ gcc -o out out.s lib/printint.c
   
 ./out  
 
+## Part_16 Modify type checking and Pointer Offset  
+This part we have a new type checing function **modify_type()**. It looks a bit messy now and not the best versions we can have. But it can support our needs and simplify code in **assignment_statement()**, **return_statement()**, **print_statement()** and **binexpr()**.  
+  
+--------------------------------------------------------------------   
+  
+Pointers offset allow us to do: &c + 1, or *(p + 1)...  
+To achieve this, we need to deal with the case when we meet A_SCALE in **genAST()**. We load an int which is the offset value and multiply with the register containing the size of the identidier. For offset equaling power of 2, we perform optimisations by shifting the bits.  
+
+
+
 
 
