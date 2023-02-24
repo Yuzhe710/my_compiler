@@ -701,6 +701,35 @@ This part we have a new type checing function **modify_type()**. It looks a bit 
 Pointers offset allow us to do: &c + 1, or *(p + 1)...  
 To achieve this, we need to deal with the case when we meet A_SCALE in **genAST()**. We load an int which is the offset value and multiply with the register containing the size of the identidier. For offset equaling power of 2, we perform optimisations by shifting the bits.  
 
+## Part_17 Lvalues and Rvalues Revisited  
+This part makes some modifications to Lvalues and Rvalues in assignments. In essential, we want to be able to do:  
+```
+a=b=3;
+*p = 16;
+
+```
+which are not currently supported.  
+  
+--------------------------------------------------------------------  
+  
+The names lvalue and rvalue come from the two sides of an assignment statement: lvalues are on the left, rvalues are on the right. Previously when we have statement like `a=b`, we treat right-hand side as `LVIDENT` whereas left-hand side as expression. It does not fit with our new assignments shown above.  
+  
+We do the following changes. Firstly, we treat assignment statements as expressions. This means that we do not parse left and right side of the `=` seperately but as a whole expression. `=` is now an operand but with lower precedence than `+` and `-`... (add a new precedence value for =). Secondly, we need to ensure right-associativity for assignments. It means that operator binds more tightly to the expression on the right than to the left (See comments and tutorials, for example a=b=3). Thirdly, and also for right assiciativity, we need to swap the left and right tree when parsing the assignment expression, because we need to generate the assembly code for the right-hand rvalue bedore the code for the left-hand value (also see above example).  
+  
+We also write a new function which allows us to visualise the AST, the `dumpAST()`. We also get rid of `print` statement for now, as well as multiple variables (those seperated by comma).  
+  
+--------------------------------------------------------------------  
+  
+To compile and test:
+
+gcc -o comp1 -g -Wall cg.c decl.c expr.c gen.c main.c misc.c scan.c stmt.c sym.c tree.c types.c  
+  
+./comp1 input18.c (or input18a.c)  
+  
+gcc -o out out.s lib/printint  
+  
+./out
+
 
 
 
