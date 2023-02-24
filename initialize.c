@@ -8,3 +8,4 @@ struct token Token;
 char *Text;
 struct symtable *Gsym[1024];
 int Functionid = 0;
+int O_dumpAST;

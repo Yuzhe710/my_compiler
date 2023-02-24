@@ -7,6 +7,7 @@ void reject_token(struct token* t);
 struct ASTnode *mkastnode(int op, int type, struct ASTnode *left, struct ASTnode *mid, struct ASTnode *right, int intvalue);
 struct ASTnode *mkastleaf(int op, int type, int intvalue);
 struct ASTnode *mkastunary(int op, int type, struct ASTnode *left, int intvalue);
+void dumpAST(struct ASTnode *n, int label, int level);
 
 // expr.c
 struct ASTnode *binexpr(int rbp);
@@ -51,13 +52,12 @@ void cgreturn(int reg, int id);
 int cgaddress(int id);
 int cgderef(int r, int type);
 int cgshlconst(int r, int val);
+int cgstorderef(int r1, int r2, int type);
 
 // stmt.c
 struct ASTnode *single_statement(void);
 struct ASTnode *compound_statement(void);
-struct ASTnode *print_statement(void);
 struct ASTnode *if_statement(void);
-struct ASTnode *assignment_statement(void);
 struct ASTnode *while_statement(void);
 struct ASTnode *for_statement(void);
 struct ASTnode *return_statement(void);

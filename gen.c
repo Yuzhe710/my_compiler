@@ -140,17 +140,19 @@ int genAST(struct ASTnode *n, int reg, int parentASTop) {
         case A_INTLIT:
             return cgloadint(n->v.intvalue, n->type);
         case A_IDENT:
-            return cgloadglob(n->v.id);
-        case A_LVIDENT:
-            return cgstorglob(reg, n->v.id);
+            // Load our value if we are an rvalue
+            // or we are being dereferenced
+            if (n->rvalue || parentASTop == A_DEREF)
+                return cgloadglob(n->v.id);
+            else
+                return NOREG;
         case A_ASSIGN:
-            return rightreg;
-        case A_PRINT:
-            // Print the left child's value, 
-            // and return no register
-            genprintint(leftreg);
-            genfreeregs();
-            return NOREG;
+            // Are we assigning to an identifier or through a pointer?
+            switch (n->right->op) {
+                case A_IDENT: return cgstorglob(leftreg, n->right->v.id);
+                case A_DEREF: return cgstorderef(leftreg, rightreg, n->right->type);
+                default: fatald("Can't A_ASSIGN in genAST(), op", n->op);
+            }
         case A_WIDEN:
             // Widen the child's type to the parent's type
             return cgwiden(leftreg, n->left->type, n->type);
@@ -162,7 +164,12 @@ int genAST(struct ASTnode *n, int reg, int parentASTop) {
         case A_ADDR:
             return cgaddress(n->v.id);
         case A_DEREF:
-            return cgderef(leftreg, n->left->type);
+            // If we are an rvalue, dereference to get the value we point at
+            // otherwise leave it for A_ASSIGN to store through the pointer
+            if (n->rvalue)
+                return cgderef(leftreg, n->left->type);
+            else    
+                return leftreg;
         case A_SCALE:
             // Optimisation trick: use shift 
             // if the scale value is a known power of 2

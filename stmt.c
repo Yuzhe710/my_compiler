@@ -6,8 +6,6 @@
 struct ASTnode *single_statement(void) {
     int type;
     switch(Token.token) {
-        case T_PRINT:
-            return print_statement();
         case T_CHAR:
         case T_INT:
         case T_LONG:
@@ -15,8 +13,6 @@ struct ASTnode *single_statement(void) {
             matchident();
             var_declaration(type);
             return NULL;
-        case T_IDENT:
-            return assignment_statement();
         case T_IF:
             return if_statement();
         case T_WHILE:
@@ -26,7 +22,9 @@ struct ASTnode *single_statement(void) {
         case T_RETURN:
             return return_statement();
         default:
-            fatald("Syntax error, token", Token.token);
+            // For now, see if this is an exression.
+            // This catches assignment statement
+            return binexpr(0);
     }
     return NULL;
 }
@@ -87,7 +85,7 @@ struct ASTnode *compound_statement(void) {
 
         // if the single statement is print statement or assignment statement, 
         // need to match the semicolon at last.
-        if (tree != NULL && (tree->op == A_ASSIGN || tree->op == A_PRINT ||
+        if (tree != NULL && (tree->op == A_ASSIGN ||
                              tree->op == A_FUNCCALL || tree->op == A_RETURN)) {
             matchsemi();
         }
@@ -138,65 +136,6 @@ struct ASTnode *if_statement(void) {
     // build and return the AST for if statement
     return mkastnode(A_IF, P_NONE, condAST, trueAST, falseAST, 0);
 
-}
-
-struct ASTnode *print_statement(void) {
-    struct ASTnode *tree;
-
-    // Match a 'print' as the first token
-    match(T_PRINT, "print");
-
-    // Parse the following expression and
-    // generate the assembly code
-    tree = binexpr(0);
-    // printf("%d\n", tree->op);
-    
-    // Ensure the expression's type to be printed is compatible with INT
-    tree = modify_type(tree, P_INT, 0);
-    if (tree == NULL)
-        fatal("Incompatible type to print");
-
-    // make a print AST tree
-    tree = mkastunary(A_PRINT, P_NONE, tree, 0);
-
-    return tree;
-}
-
-// In assignment, identifier is the rvalue. the operation for the rvalue node is A_LVIDENT
-struct ASTnode *assignment_statement(void) {
-    struct ASTnode *left, *right, *tree;
-    int id;
-
-    // Ensure we have an identifier
-    matchident();
-
-    // This could be a variable or a function call
-    // If next token is '(', it's a function call
-    if (Token.token == T_LPAREN) 
-        return funccall();
-
-    // Not a function call
-    // check if it has been defined and make leaf node for it
-    if ((id = findglob(Text)) == -1) {
-        fatals("Undeclared variable", Text);
-    }
-    // printf("%s\n", Gsym[id]->name);
-    right = mkastleaf(A_LVIDENT, Gsym[id]->type, id);
-
-    match(T_ASSIGN, "=");
-
-    // Rvalue expression needs to be evaluated before saved to variable, make it left tree.
-    left = binexpr(0);
-
-    // Ensure the two types are compatible
-    left = modify_type(left, right->type, 0);
-    if (left == NULL)
-        fatal("Incompatible expression in assignment");
-    
-    // Make an assignment AST tree
-    tree = mkastnode(A_ASSIGN, P_INT, left, NULL, right, 0);
-
-    return tree;
 }
 
 struct ASTnode *while_statement(void) {

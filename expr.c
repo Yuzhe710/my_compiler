@@ -87,10 +87,11 @@ int getoperation(int tokentype) {
 
 // Operator precedence for each token
 static int OpPrec[] = {
-    0, 10, 10,          // T_EOF, T_PLUS, T_MINUS
-    20, 20,             // T_STAR, T_SLASH
-    30, 30,             // T_EQ, T_NE
-    40, 40, 40, 40      // T_LT, T_GT, T_LE, T_GE
+    0, 10,              // T_EOF, T_ASSIGN
+    20, 20,             // T_PLUS, T_MINUS
+    30, 30,             // T_STAR, T_SLASH
+    40, 40,             // T_EQ, T_NE
+    50, 50, 50, 50      // T_LT, T_GT, T_LE, T_GE
     }; 
 
 static int op_precedence(int tokentype) {
@@ -100,6 +101,12 @@ static int op_precedence(int tokentype) {
         fatald("Syntax error, token", tokentype);
     }
     return prec;
+}
+
+static int rightassoc(int tokentype) {
+    if (tokentype == T_ASSIGN)
+        return 1;
+    return 0;
 }
 
 // Parse a prefix expression and return
@@ -158,14 +165,16 @@ struct ASTnode *binexpr(int ptp) {
     // get the next token at the same time
     left = prefix();
 
-    // if hit a semi colon, just return the left node
+    // if hit a semi colon or ')', just return the left node
     tokentype = Token.token;
-    if (tokentype == T_SEMI || tokentype == T_RPAREN)
+    if (tokentype == T_SEMI || tokentype == T_RPAREN) {
+        left->rvalue = 1;
         return left;
-
+    }
     // while the precedence of this token is 
     // more than that of the previous token precedence
-    while (op_precedence(tokentype) > ptp) {
+    while (op_precedence(tokentype) > ptp ||
+            (rightassoc(tokentype) && op_precedence(tokentype) == ptp)) {
         // get the integer literal
         scan(&Token);
 
@@ -175,14 +184,55 @@ struct ASTnode *binexpr(int ptp) {
         // Ensure the two types are compatible by trying
         // to modify each tree to match the other's type.
         ASTop = getoperation(tokentype);
-        ltemp = modify_type(left, right->type, ASTop);
-        rtemp = modify_type(right, left->type, ASTop);
-        if (ltemp == NULL && rtemp == NULL)
-            fatal("Incompatible types in binary expression");
-        if (ltemp != NULL)
-            left = ltemp;
-        if (rtemp != NULL)
-            right = rtemp;
+
+        if (ASTop == A_ASSIGN) {
+            // Assignment
+            // Make the right tree into an rvalue
+            right->rvalue = 1;
+
+            // Ensure the right's type matches the left
+            right = modify_type(right, left->type, 0);
+            if (left == NULL)
+                fatal("Incompatible expression in assignment");
+
+            // Make an assignment AST tree. 
+            // But switch left and right around.
+            // e.g.
+            //     =
+            //    / \ 
+            //   a   3
+            // 
+            // will become 
+            //     =
+            //    / \
+            //   3   a
+            //
+            //  a = b = 3
+            //         =
+            //        / \
+            //       =   a
+            //      / \
+            //     3   b
+            ltemp = left; left = right; right = ltemp;
+        } else {
+
+            // We are not doing an assignment, so both trees should be rvalues
+            // Convert both trees into rvalue if they are lvalue trees. (lavlue is default)
+            left->rvalue = 1;
+            right->rvalue = 1;
+
+            // Ensure the two types are compatible by trying 
+            // to modify each tree to match the other's type
+            ltemp = modify_type(left, right->type, ASTop);
+            rtemp = modify_type(right, left->type, ASTop);
+            if (ltemp == NULL && rtemp == NULL)
+                fatal("Incompatible types in binary expression");
+            if (ltemp != NULL)
+                left = ltemp;
+            if (rtemp != NULL)
+                right = rtemp;
+        }
+        
         
         // Join that sub-tree with ours
         left = mkastnode(getoperation(tokentype), left->type, left, NULL, right, 0);
@@ -190,10 +240,13 @@ struct ASTnode *binexpr(int ptp) {
         // update the tokentype to be the type of current token
         // If we hit a semi-colon, just return the left node
         tokentype = Token.token;
-        if (tokentype == T_SEMI || tokentype == T_RPAREN) 
+        if (tokentype == T_SEMI || tokentype == T_RPAREN) {
+            left->rvalue = 1;
             return left;
+        }
     }
     // return the tree when its precedence is same or lower
+    left->rvalue = 1;
     return left;
 }
 

@@ -34,29 +34,14 @@ int parse_type() {
 void var_declaration(int type) {
     int id;
 
-    while (1) {
-        // After matchident() calling scan(),
-        // Text now has the identifier's name
-        // Add it as a known identifier
-        // and generate its space in assembly
-        id = addglob(Text,type, S_VARIABLE, 0);
-        genglobsym(id);
-
-        // If the next token is a semicolon,
-        // skip it and return.
-        if (Token.token == T_SEMI) {
-            scan(&Token);
-            return;
-        }
-        // If the next token is a comma, skip it,
-        // get the identifier and loop back
-        if (Token.token == T_COMMA) {
-            scan(&Token);
-            matchident();
-            continue;
-        }
-        fatal("Missing , or ; after identifier");
-    }
+    // After matchident() calling scan(),
+    // Text now has the identifier's name
+    // Add it as a known identifier
+    // and generate its space in assembly
+    id = addglob(Text,type, S_VARIABLE, 0);
+    genglobsym(id);
+    // Get the trailing semicolon
+    matchsemi();
 }
 
 // Parse the declaration of a simplistic function

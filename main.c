@@ -14,7 +14,7 @@ static void init() {
 
 // Print out a usage message if arguments are wrong
 static void usage(char *prog) {
-    fprintf(stderr, "Usage: %s infile\n", prog);
+    fprintf(stderr, "Usage: %s [-T] infile\n", prog);
     exit(1);
 }
 
@@ -38,10 +38,10 @@ static void scanfile() {
 }
 */
 
+// Main program: check arguments and print a usage if we don't have an argument
+// Open up the input file and call scanfile() to scan the tokens in it.
 int main(int argc, char *argv[]) {
-
-    if (argc != 2)
-        usage(argv[0]);
+    int i;
 
     Text = (char*) malloc(513); 
     for (int i = 0; i < 1024; i ++) {
@@ -49,6 +49,21 @@ int main(int argc, char *argv[]) {
     }
 
     init();
+
+    // Scan for command options
+    for (i=1; i<argc; i++) {
+        if (*argv[i] != '-') break;
+        for (int j=1; argv[i][j]; j++) {
+            switch (argv[i][j]) {
+                case 'T': O_dumpAST = 1; break;
+                default: usage(argv[0]);
+            }
+        }
+    }
+
+    // Ensure we have an input file argument
+    if (i >= argc)
+        usage(argv[0]);
 
     // Open up the input file
     if ((Infile = fopen(argv[1], "r")) == NULL) {
