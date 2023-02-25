@@ -30,6 +30,41 @@ struct ASTnode *funccall(void) {
     return tree;
 }
 
+// Parse the index into an array and 
+// return an AST tee for it
+static struct ASTnode *array_access(void) {
+    struct ASTnode *left, *right;
+    int id;
+
+    // Check 
+    if ((id = findglob(Text)) == -1 || Gsym[id]->stype != S_ARRAY) {
+        fatals("Undeclared array", Text);
+    }
+    left = mkastleaf(A_ADDR, Gsym[id]->type, id);
+
+    // Get the '['
+    scan(&Token);
+
+    // Parse the following expression indicating index
+    right = binexpr(0);
+
+    // Get the ']'
+    match(T_RBRACKET, "]");
+
+    // Ensure that this is of int type
+    if (!inttype(right->type))
+        fatal("Array index is not of integer type");
+    
+    // Scale the index by the size of the element's type
+    right = modify_type(right, left->type, A_ADD);
+
+    // Return an AST tree where the array's base has the offset
+    // added to it, and dereference the element.It is still an lvalue 
+    left = mkastnode(A_ADD, Gsym[id]->type, left, NULL, right, 0);
+    left = mkastunary(A_DEREF, value_at(left->type), left, 0);
+    return left;
+}
+
 
 // parse the first factor and retrun an AST node representing it
 static struct ASTnode *getleft(void) {
@@ -54,6 +89,9 @@ static struct ASTnode *getleft(void) {
             if (Token.token == T_LPAREN)
                 return funccall();
 
+            // It's a '[', so an array access
+            if (Token.token == T_LBRACKET)
+                return array_access();
             // Not a function call, so reject the new token
             reject_token(&Token);
 
@@ -102,6 +140,8 @@ static int OpPrec[] = {
     }; 
 
 static int op_precedence(int tokentype) {
+    if (tokentype >= T_VOID)
+        fatald("Token with no precedence in op_precedence:", tokentype);
     int prec = OpPrec[tokentype];
     // printf("%d\n", tokentype);
     if (prec == 0) {
@@ -174,7 +214,7 @@ struct ASTnode *binexpr(int ptp) {
 
     // if hit a semi colon or ')', just return the left node
     tokentype = Token.token;
-    if (tokentype == T_SEMI || tokentype == T_RPAREN) {
+    if (tokentype == T_SEMI || tokentype == T_RPAREN || tokentype == T_RBRACKET) {
         left->rvalue = 1;
         return left;
     }
@@ -247,7 +287,8 @@ struct ASTnode *binexpr(int ptp) {
         // update the tokentype to be the type of current token
         // If we hit a semi-colon, just return the left node
         tokentype = Token.token;
-        if (tokentype == T_SEMI || tokentype == T_RPAREN) {
+        if (tokentype == T_SEMI || tokentype == T_RPAREN
+            || tokentype == T_RBRACKET) {
             left->rvalue = 1;
             return left;
         }

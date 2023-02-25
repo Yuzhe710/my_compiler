@@ -77,7 +77,7 @@ void fatalc(char *s, int c);
 
 // sym.c
 int findglob(char *s);
-int addglob(char* name, int type, int stype, int endlabel);
+int addglob(char* name, int type, int stype, int endlabel, int size);
 
 // decl.c
 int parse_type(void);
