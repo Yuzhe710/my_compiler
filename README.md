@@ -728,9 +728,47 @@ gcc -o comp1 -g -Wall cg.c decl.c expr.c gen.c main.c misc.c scan.c stmt.c sym.c
   
 gcc -o out out.s lib/printint  
   
-./out
+./out  
 
+## Part_18 Array  
+This part, we implement features of array. We aim to be able to have those following declarations workable.  
+```
+int ary[5];               // Array of five int elements
+  int *ptr;                 // Pointer to an int
 
-
+  ary[3]= 63;               // Set ary[3] (lvalue) to 63
+  ptr   = ary;              // Point ptr to base of ary
+  // ary= ptr;              // error: assignment to expression with array type
+  ptr   = &ary[0];          // Also point ptr to base of ary, ary[0] is lvalue
+  ptr[4]= 72;               // Use ptr like an array, ptr[4] is an lvalue
+```  
+Array is contigious of memory blocks with same type of data. Array name can be the pointer to the base address of the array. The elements of array is mutable, but the base address of the array is not mutable.  
+  
+--------------------------------------------------------------------  
+  
+Firstly we have a new field in the symtable struct: size. It means the number of elements in the symbol. If the symbol is an array name, size is the number of elements in array. If the symbol is a single identifier, size = 1. If symbol is function's name, size = 0.  
+  
+Secondly, to declare an array with certain size, we have such BNF grammar:  
+```
+variable_declaration: type identifier ';'
+        | type identifier '[' P_INTLIT ']' ';'
+        ;
+```  
+Hence when we meet an identifier, if there is an `[` after that, it means we have an array declaration. In `var_declaration()`, we process the array by adding its name into symbol table. Note that the type of such symbol is the pointer type. Then, we allocate the spaces in assembly (`cgglobsym(id)`) for the number of elements.  
+  
+Thirdly, we need to access array by indexes. In `expr.c` we have a new `array_access()` function which parses array's symbol as left tree whose type is A_ADDR, and parses index value (as expression) as right tree. After type checking (check that index expression is an int type, and array's type is pointer type, A_SCALE tree will be returned which indicates pointer's base address will be scaled to the indexed position), A_ADD tree will be built to connect left and right sub-tree, and finally A_DEREF tree on top as we aim to get the element of that address.  
+  
+Fourthly, to deal with expression like `*(ptr + 2)`, we need to parse parenthesis in expression. This part is done in `getleft()` in `expr.c`  
+  
+--------------------------------------------------------------------  
+  
+To compile and test:  
+gcc -o comp1 -g -Wall cg.c decl.c expr.c gen.c main.c misc.c scan.c stmt.c sym.c tree.c types.c  
+  
+./comp1 input20.c  
+  
+gcc -o out out.s lib/printint.c  
+  
+./out  
 
 
