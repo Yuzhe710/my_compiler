@@ -1,8 +1,16 @@
 	.text
-	.comm	c,4,4
-	.comm	d,4,4
-	.comm	e,8,8
-	.comm	f,4,4
+	.data
+	.globl	a
+a:	.long	0
+	.data
+	.globl	b
+b:	.long	0
+	.data
+	.globl	c
+c:	.long	0
+	.data
+	.globl	d
+d:	.long	0
 	.text
 	.globl	main
 	.type	main, @function

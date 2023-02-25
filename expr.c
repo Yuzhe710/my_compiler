@@ -65,6 +65,13 @@ static struct ASTnode *getleft(void) {
             // Make a leaf AST node for it
             n = mkastleaf(A_IDENT, Gsym[id]->type, id);
             break;
+        case T_LPAREN:
+            // Begining of a parenthesised expression
+            scan(&Token);
+            n = binexpr(0);
+            matchrparen();
+
+            return n;
         default:
             // printf("here is %d\n", Token.token);
             fatald("Syntax error, token", Token.token);
