@@ -22,7 +22,7 @@ void genprintint(int reg);
 void genglobsym(int id);
 int genlabel(void);
 int genprimsize(int type);
-
+int genglobstr(char *strvalue);
 
 //int interpretAST(struct ASTnode *n);
 // void generatecode(struct ASTnode *n);
@@ -53,6 +53,8 @@ int cgaddress(int id);
 int cgderef(int r, int type);
 int cgshlconst(int r, int val);
 int cgstorderef(int r1, int r2, int type);
+void cgglobstr(int l, char *strvalue);
+int cgloadglobstr(int id);
 
 // stmt.c
 struct ASTnode *single_statement(void);

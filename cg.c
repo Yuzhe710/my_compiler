@@ -332,3 +332,22 @@ int cgstorderef(int r1, int r2, int type) {
   }
   return (r1);
 }
+
+// Generate a global string and its start label
+void cgglobstr(int l, char *strvalue) {
+  char *cptr;
+  cglabel(l);
+  for (cptr = strvalue; *cptr; cptr++) {
+    fprintf(Outfile, "\t.byte\t%d\n", *cptr);
+  }
+  fprintf(Outfile, "\t.byte\t0\n");
+}
+
+// Given the label number of a global string, 
+// load its address into a new register
+int cgloadglobstr(int id) {
+  // Get a new register
+  int r = alloc_register();
+  fprintf(Outfile, "\tleaq\tL%d(\%%rip), %s\n", id, reglist[r]);
+  return r;
+}

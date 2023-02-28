@@ -19,7 +19,7 @@ enum {
     // Type keyword
     T_VOID, T_CHAR, T_INT, T_LONG, 
     // Structural tokens
-    T_INTLIT, T_SEMI, T_IDENT,
+    T_INTLIT, T_STRLIT, T_SEMI, T_IDENT,
     T_LBRACE, T_RBRACE, T_LPAREN, T_RPAREN,
     T_LBRACKET, T_RBRACKET,
     T_AMPER, T_LOGAND, 
@@ -38,7 +38,7 @@ struct token {
 enum {
     A_ASSIGN=1,  A_ADD, A_SUBSTRACT, A_MULTIPLY, A_DIVIDE, 
     A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE,
-    A_INTLIT,
+    A_INTLIT, A_STRLIT, 
     A_IDENT,
     A_GLUE, A_IF, A_WHILE, A_FUNCTION, A_WIDEN, A_RETURN,
     A_FUNCCALL, A_DEREF, A_ADDR, A_SCALE

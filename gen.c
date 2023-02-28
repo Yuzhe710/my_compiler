@@ -183,6 +183,8 @@ int genAST(struct ASTnode *n, int reg, int parentASTop) {
                     rightreg = cgloadint(n->v.size, P_INT);
                     return cgmul(leftreg, rightreg);
             }
+        case A_STRLIT:
+            return cgloadglobstr(n->v.id);
         default:
             fatald("Unknown AST operator", n->op);
     }
@@ -206,6 +208,12 @@ void genglobsym(int id) {
 
 int genprimsize(int type) {
     return cgprimsize(type);
+}
+
+int genglobstr(char *strvalue) {
+    int l = genlabel();
+    cgglobstr(l, strvalue);
+    return l;
 }
 
 // void generatecode(struct ASTnode *n) {
