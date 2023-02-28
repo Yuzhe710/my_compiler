@@ -76,6 +76,8 @@ static struct ASTnode *getleft(void) {
         case T_STRLIT:
             // For a STRLIT token, generate the assembly for it.
             // Then make a leaf AST node for it. id is the string's label
+            // make an anonymous global string. 
+            // The label is effectively the base of the array of characters in the string
             id = genglobstr(Text);
             n = mkastleaf(A_STRLIT, P_CHARPTR, id);
             break;

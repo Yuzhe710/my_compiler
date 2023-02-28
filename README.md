@@ -770,5 +770,39 @@ gcc -o comp1 -g -Wall cg.c decl.c expr.c gen.c main.c misc.c scan.c stmt.c sym.c
 gcc -o out out.s lib/printint.c  
   
 ./out  
+  
+## Part_19 Character and String Literals  
+This part we make character and string literals definition available.  
+  
+We make a new token for String Literals. T_STRLIT. For characters, as they can just be treated as integer, nothing added. We will scan a string literal into Text buffer.  
+  
+After we can recognise string literals, we need to be aware that an expression can have string literal as element. By looking at [BNF Grammar for C](https://www.lysator.liu.se/c/ANSI-C-grammar-y.html)
+written by Jeff Lee in 1985,
+```
+primary_expression
+        : IDENTIFIER
+        | CONSTANT
+        | STRING_LITERAL
+        | '(' expression ')'
+        ;
+```
+We need to modify `getleft()` in `expr.c`. To have a unary node with node type **A_STRLIT**, and type **P_CHARPTR** (as string is an array of chars) for a string literal. At this time we need to allocate spaces for each characters in the string. We also need a label at the beginning, which refers to the base address of the string. In `genAST()`, when we meet **A_STRLIT**, we load the (base) address which is contained in label into a new register, using `leaq`.  
+  
+--------------------------------------------------------------------  
+  
+To compile and test:  
+gcc -o comp1 -g cg.c decl.c expr.c gen.c main.c misc.c scan.c stmt.c sym.c tree.c types.c  
+  
+./comp1 input21.c  
+  
+gcc -o out out.s lib/printint.c  
+  
+./out  
+
+
+  
+
+  
+
 
 
