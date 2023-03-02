@@ -439,7 +439,7 @@ int cgloadglob(int id, int op) {
         fprintf(Outfile, "\tincb\t%s(\%%rip)\n", Gsym[id]->name);
       if (op == A_PREDEC)
         fprintf(Outfile, "\tdecb\t%s(\%%rip)\n", Gsym[id]->name);
-      fprintf(Outfile, "tmovzbq\t%s(%%rip), %s\n", Gsym[id]->name, reglist[r]);
+      fprintf(Outfile, "\tmovzbq\t%s(%%rip), %s\n", Gsym[id]->name, reglist[r]);
       if (op == A_POSTINC)
         fprintf(Outfile, "\tincb\t%s(\%%rip)\n", Gsym[id]->name);
       if (op == A_POSTDEC)
@@ -452,7 +452,7 @@ int cgloadglob(int id, int op) {
         fprintf(Outfile, "\tdecl\t%s(\%%rip)\n", Gsym[id]->name);
       // `movslq` moves a value from 32-bit source to 64-bit destination 
       //  ensures that signed value of the number in the 64-bit destination is equal to the one from source
-      fprintf(Outfile, "tmovslq\t%s(%%rip), %s\n", Gsym[id]->name, reglist[r]);
+      fprintf(Outfile, "\tmovslq\t%s(%%rip), %s\n", Gsym[id]->name, reglist[r]);
       if (op == A_POSTINC)
         fprintf(Outfile, "\tincl\t%s(\%%rip)\n", Gsym[id]->name);
       if (op == A_POSTDEC)
