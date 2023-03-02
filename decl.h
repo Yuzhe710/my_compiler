@@ -99,7 +99,6 @@ void global_declarations(void);
 struct ASTnode *function_declaration(int type);
 
 // types.c
-int type_compatible(int *left, int *right, int onlyright);
 int pointer_to(int type);
 int value_at(int type);
 int inttype(int type);

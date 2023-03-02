@@ -111,7 +111,7 @@ static struct ASTnode *getleft(void) {
 // convert a binary operator token into an AST operation
 // an 1:1 mapping from token type to AST operation node type
 int getoperation(int tokentype) {
-    if (tokentype > T_EOF && tokentype < T_INTLIT) {
+    if (tokentype > T_EOF && tokentype <= T_SLASH) {
         return tokentype;
     }
     fatald("Syntax error, token", tokentype);
@@ -130,7 +130,7 @@ static int OpPrec[] = {
     }; 
 
 static int op_precedence(int tokentype) {
-    if (tokentype >= T_VOID)
+    if (tokentype >= T_SLASH)
         fatald("Token with no precedence in op_precedence:", tokentype);
     int prec = OpPrec[tokentype];
     // printf("%d\n", tokentype);

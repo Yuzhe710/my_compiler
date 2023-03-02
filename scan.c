@@ -274,7 +274,7 @@ int scan(struct token *t) {
         case '<':
             if ((c = next()) == '=') {
                 t->token = T_LE;
-            } else if ((c = next()) == '<') {
+            } else if (c  == '<') {
                 t->token = T_LSHIFT;
             } else {
                 Putback = c;
@@ -284,7 +284,7 @@ int scan(struct token *t) {
         case '>':
             if ((c = next()) == '=') {
                 t->token = T_GE;
-            } else if ((c = next()) == '>') {
+            } else if (c == '>') {
                 t->token = T_RSHIFT;
             } else {
                 Putback = c;
