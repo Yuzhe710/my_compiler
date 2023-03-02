@@ -386,7 +386,7 @@ int cginvert(int r) {
 // the shift amount has to be loaded into the %cl register
 int cgshl(int r1, int r2) {
   fprintf(Outfile, "\tmovb\t%s, %%cl\n", breglist[r2]);
-  fprintf(Outfile, "\tshlq\t%%cl. %s\n", reglist[r1]);
+  fprintf(Outfile, "\tshlq\t%%cl, %s\n", reglist[r1]);
   free_register(r2);
   return r1;
 }
