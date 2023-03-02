@@ -13,6 +13,7 @@ void dumpAST(struct ASTnode *n, int label, int level);
 struct ASTnode *binexpr(int rbp);
 struct ASTnode *funccall(void);
 struct ASTnode *prefix(void);
+struct ASTnode *postfix(void);
 
 // gen.c
 int genAST(struct ASTnode *n, int reg, int parentASTop);
@@ -33,7 +34,6 @@ void cgpreamble();
 void cgfuncpreamble(int id);
 void cgfuncpostamble(int id);
 int cgloadint(int value, int type);
-int cgloadglob(int id);
 int cgadd(int r1, int r2);
 int cgsub(int r1, int r2);
 int cgmul(int r1, int r2);
@@ -55,6 +55,16 @@ int cgshlconst(int r, int val);
 int cgstorderef(int r1, int r2, int type);
 void cgglobstr(int l, char *strvalue);
 int cgloadglobstr(int id);
+int cgand(int r1, int r2);
+int cgor(int r1, int r2);
+int cgxor(int r1, int r2);
+int cgnegate(int r);
+int cginvert(int r);
+int cgshl(int r1, int r2);
+int cgshr(int r1, int r2);
+int cglognot(int r);
+int cgboolean(int r, int op, int label);
+int cgloadglob(int id, int op);
 
 // stmt.c
 struct ASTnode *single_statement(void);

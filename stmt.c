@@ -120,7 +120,7 @@ struct ASTnode *if_statement(void) {
     condAST = binexpr(0);
     
     if (condAST->op < A_EQ || condAST->op > A_GE)
-        fatal("Bad comparison operator");
+        condAST = mkastunary(A_TOBOOL, condAST->type, condAST, 0);
     matchrparen();
 
     // Get the AST for the compound statement
@@ -148,7 +148,7 @@ struct ASTnode *while_statement(void) {
     // Parse the condition expression
     condAST = binexpr(0);
     if (condAST->op < A_EQ || condAST->op > A_GE)
-        fatal("Bad comparison operator");
+        condAST = mkastunary(A_TOBOOL, condAST->type, condAST, 0);
     matchrparen();
 
     // Parse the body compound statement
@@ -176,7 +176,7 @@ struct ASTnode* for_statement(void) {
     // get the condition statement and ;
     condAST = binexpr(0);
     if (condAST->op < A_EQ || condAST->op > A_GE)
-        fatal("Bad comparison operator");
+        condAST = mkastunary(A_TOBOOL, condAST->type, condAST, 0);
     matchsemi();
 
     // get the post_op statement and the ')'

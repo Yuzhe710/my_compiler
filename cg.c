@@ -81,31 +81,31 @@ int cgloadint(int value, int type) {
   return (r);
 }
 
-// Load a value from a variable into a register.
-// Return the number of the register
-int cgloadglob(int id) {
-  // Get a new register
-  int r = alloc_register();
+// // Load a value from a variable into a register.
+// // Return the number of the register
+// int cgloadglob(int id) {
+//   // Get a new register
+//   int r = alloc_register();
 
-  // Print out the code to initialise it: P_CHAR or P_INT
-  switch (Gsym[id]->type) {
-    case P_CHAR:
-      fprintf(Outfile, "\tmovzbq\t%s(\%%rip), %s\n", Gsym[id]->name, reglist[r]);
-      break;
-    case P_INT:
-      fprintf(Outfile, "\tmovzbl\t%s(\%%rip), %s\n", Gsym[id]->name, dreglist[r]);
-      break;
-    case P_LONG:
-    case P_CHARPTR:
-    case P_INTPTR:
-    case P_LONGPTR:
-      fprintf(Outfile, "\tmovq\t%s(\%%rip), %s\n", Gsym[id]->name, reglist[r]);
-      break;
-    default:
-      fatald("Bad type in cgloadglob:", Gsym[id]->type);
-  }
-  return (r);
-}
+//   // Print out the code to initialise it: P_CHAR or P_INT
+//   switch (Gsym[id]->type) {
+//     case P_CHAR:
+//       fprintf(Outfile, "\tmovzbq\t%s(\%%rip), %s\n", Gsym[id]->name, reglist[r]);
+//       break;
+//     case P_INT:
+//       fprintf(Outfile, "\tmovzbl\t%s(\%%rip), %s\n", Gsym[id]->name, dreglist[r]);
+//       break;
+//     case P_LONG:
+//     case P_CHARPTR:
+//     case P_INTPTR:
+//     case P_LONGPTR:
+//       fprintf(Outfile, "\tmovq\t%s(\%%rip), %s\n", Gsym[id]->name, reglist[r]);
+//       break;
+//     default:
+//       fatald("Bad type in cgloadglob:", Gsym[id]->type);
+//   }
+//   return (r);
+// }
 
 // Add two registers together and return
 // the number of the register with the result
@@ -349,5 +349,131 @@ int cgloadglobstr(int id) {
   // Get a new register
   int r = alloc_register();
   fprintf(Outfile, "\tleaq\tL%d(\%%rip), %s\n", id, reglist[r]);
+  return r;
+}
+
+int cgand(int r1, int r2) {
+  fprintf(Outfile, "\tandq\t%s, %s\n", reglist[r1], reglist[r2]);
+  free_register(r1);
+  return r2;
+}
+
+int cgor(int r1, int r2) {
+  fprintf(Outfile, "\torq\t%s, %s\n", reglist[r1], reglist[r2]);
+  free_register(r1);
+  return r2;
+}
+
+int cgxor(int r1, int r2) {
+  fprintf(Outfile, "\txorq\t%s, %s\n", reglist[r1], reglist[r2]);
+  free_register(r1);
+  return r2;
+}
+
+// Negate a register's value
+int cgnegate(int r) {
+  fprintf(Outfile, "\tnegq\t%s\n", reglist[r]);
+  return r;
+}
+
+// Invert a register's value
+int cginvert(int r) {
+  fprintf(Outfile, "\tnotq\t%s\n", reglist[r]);
+  return r;
+}
+
+// shift left
+// the shift amount has to be loaded into the %cl register
+int cgshl(int r1, int r2) {
+  fprintf(Outfile, "\tmovb\t%s, %%cl\n", breglist[r2]);
+  fprintf(Outfile, "\tshlq\t%%cl. %s\n", reglist[r1]);
+  free_register(r2);
+  return r1;
+}
+
+// shift right
+int cgshr(int r1, int r2) {
+  fprintf(Outfile, "\tmovb\t%s, %%cl\n", breglist[r2]);
+  fprintf(Outfile, "\tshrq\t%%cl, %s\n", reglist[r1]);
+  free_register(r2);
+  return r1;
+}
+
+// Logically negate a register's value
+// the `test` instruction AND's the register with itself to set the zero and negative flags.
+// Then we set the register to 1 if it is equal to zero (sete)
+// Then we move this 8-bit result into the 64 bit register
+int cglognot(int r) {
+  fprintf(Outfile, "\ttest\t%s, %s\n", reglist[r], reglist[r]);
+  fprintf(Outfile, "\tsete\t%s\n", breglist[r]);
+  fprintf(Outfile, "\tmovzbq\t%s, %s\n", breglist[r], reglist[r]);
+  return r;
+}
+
+// Convert an integer value to a boolean value. Jump 
+// if it's an IF or WHILE operation
+// The logic here (the condition logic) needs to be revised
+int cgboolean(int r, int op, int label) {
+  fprintf(Outfile, "\ttest\t%s, %s\n", reglist[r], reglist[r]);
+  if (op == A_IF || op == A_WHILE)
+    fprintf(Outfile, "\tje\tL%d\n", label);
+  else {
+    fprintf(Outfile, "\tsetnz\t%s\n", breglist[r]);
+    fprintf(Outfile, "\tmovzbq\t%s, %s\n", breglist[r], reglist[r]);
+  }
+  return r;
+}
+
+// Load a value from a variable into a register
+// Return the number of the register. If the 
+// operation is pre or post-increment/decrement,
+// also perform this action
+int cgloadglob(int id, int op) {
+  // Get a new register
+  int r = alloc_register();
+
+  // Print out the code to initialise it
+  switch (Gsym[id]->type) {
+    case P_CHAR:
+      if (op == A_PREINC)
+        fprintf(Outfile, "\tincb\t%s(\%%rip)\n", Gsym[id]->name);
+      if (op == A_PREDEC)
+        fprintf(Outfile, "\tdecb\t%s(\%%rip)\n", Gsym[id]->name);
+      fprintf(Outfile, "tmovzbq\t%s(%%rip), %s\n", Gsym[id]->name, reglist[r]);
+      if (op == A_POSTINC)
+        fprintf(Outfile, "\tincb\t%s(\%%rip)\n", Gsym[id]->name);
+      if (op == A_POSTDEC)
+        fprintf(Outfile, "\tdecb\t%s(\%%rip)\n", Gsym[id]->name);
+      break;
+    case P_INT:
+      if (op == A_PREINC)
+        fprintf(Outfile, "\tincl\t%s(\%%rip)\n", Gsym[id]->name);
+      if (op == A_PREDEC)
+        fprintf(Outfile, "\tdecl\t%s(\%%rip)\n", Gsym[id]->name);
+      // `movslq` moves a value from 32-bit source to 64-bit destination 
+      //  ensures that signed value of the number in the 64-bit destination is equal to the one from source
+      fprintf(Outfile, "tmovslq\t%s(%%rip), %s\n", Gsym[id]->name, reglist[r]);
+      if (op == A_POSTINC)
+        fprintf(Outfile, "\tincl\t%s(\%%rip)\n", Gsym[id]->name);
+      if (op == A_POSTDEC)
+        fprintf(Outfile, "\tdecl\t%s(\%%rip)\n", Gsym[id]->name);
+      break;
+    case P_LONG:
+    case P_CHARPTR:
+    case P_INTPTR:
+    case P_LONGPTR:
+      if (op == A_PREINC)
+        fprintf(Outfile, "\tincq\t%s(\%%rip)\n", Gsym[id]->name);
+      if (op == A_PREDEC)
+        fprintf(Outfile, "\tdecq\t%s(\%%rip)\n", Gsym[id]->name);
+      fprintf(Outfile, "\tmovq\t%s(\%%rip), %s\n", Gsym[id]->name, reglist[r]);
+      if (op == A_POSTINC)
+        fprintf(Outfile, "\tincq\t%s(\%%rip)\n", Gsym[id]->name);
+      if (op == A_POSTDEC)
+        fprintf(Outfile, "\tdecq\t%s(\%%rip)\n", Gsym[id]->name);
+      break;
+    default:
+      fatald("Bad type in cgloadglob:", Gsym[id]->type);
+  }
   return r;
 }

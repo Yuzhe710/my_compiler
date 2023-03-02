@@ -81,7 +81,7 @@ static int genWHILE(struct ASTnode *n) {
 // Given an AST, the register that holds the previous 
 // rvalue, and the AST op of the parent, generate assembly code recursively
 // return the register id containing tree's final value
-int genAST(struct ASTnode *n, int reg, int parentASTop) {
+int genAST(struct ASTnode *n, int label, int parentASTop) {
     int leftreg, rightreg;
 
     // We have specific AST node handling at the top
@@ -134,7 +134,7 @@ int genAST(struct ASTnode *n, int reg, int parentASTop) {
             // Otherwise, compare registers and set one register to 0 or 1 
             // based on the comparison
             if (parentASTop == A_IF || parentASTop == A_WHILE)
-                return cgcompare_and_jump(n->op, leftreg, rightreg, reg);
+                return cgcompare_and_jump(n->op, leftreg, rightreg, label);
             else 
                 return cgcompare_and_set(n->op, leftreg, rightreg);
         case A_INTLIT:
@@ -143,7 +143,7 @@ int genAST(struct ASTnode *n, int reg, int parentASTop) {
             // Load our value if we are an rvalue
             // or we are being dereferenced
             if (n->rvalue || parentASTop == A_DEREF)
-                return cgloadglob(n->v.id);
+                return cgloadglob(n->v.id, n->op);
             else
                 return NOREG;
         case A_ASSIGN:
@@ -185,6 +185,41 @@ int genAST(struct ASTnode *n, int reg, int parentASTop) {
             }
         case A_STRLIT:
             return cgloadglobstr(n->v.id);
+        case A_AND:
+            return (cgand(leftreg, rightreg));
+        case A_OR:
+            return (cgor(leftreg, rightreg));
+        case A_XOR:
+            return (cgxor(leftreg, rightreg));
+        case A_LSHIFT:
+            return (cgshl(leftreg, rightreg));
+        case A_RSHIFT:
+            return (cgshr(leftreg, rightreg));
+        case A_POSTINC:
+            // Load the variable's value into a register,
+            // then increment it
+            return (cgloadglob(n->v.id, n->op));
+        case A_POSTDEC:
+            // Load the variable's value into a register,
+            // then decrement it
+            return (cgloadglob(n->v.id, n->op));
+        case A_PREINC:
+            // Load and increment the variable's value into a register
+            return (cgloadglob(n->left->v.id, n->op));
+        case A_PREDEC:
+            // Load and decrement the variable's value into a register
+            return (cgloadglob(n->left->v.id, n->op));
+        case A_NEGATE:
+            return (cgnegate(leftreg));
+        case A_INVERT:
+            return (cginvert(leftreg));
+        case A_LOGNOT:
+            return (cglognot(leftreg));
+        case A_TOBOOL:
+            // If the parent AST node is an A_IF or A_WHILE, generate
+            // a compare followed by a jump. Otherwise, set the register
+            // to 0 or 1 based on it's zeroeness or non-zeroeness
+            return (cgboolean(leftreg, parentASTop, label));
         default:
             fatald("Unknown AST operator", n->op);
     }
