@@ -798,7 +798,42 @@ gcc -o comp1 -g cg.c decl.c expr.c gen.c main.c misc.c scan.c stmt.c sym.c tree.
 gcc -o out out.s lib/printint.c  
   
 ./out  
+  
+## Part_20: More operators  
+We add some more operators in this part.  
+  
+| Scanned Input | Token |
+|:-------------:|-------|
+|   <code>&#124;&#124;</code>        | T_LOGOR |
+|   `&&`        | T_LOGAND |
+|   <code>&#124;</code>         | T_OR |
+|   `^`         | T_XOR |
+|   `<<`        | T_LSHIFT |
+|   `>>`        | T_RSHIFT |
+|   `++`        | T_INC |
+|   `--`        | T_DEC |
+|   `~`         | T_INVERT |
+|   `!`         | T_LOGNOT |
+  
+Some operators are prefix operators. Such as `T_MINUS`, `T_INVERT`, `T_LOGNOT`, `T_INC`, `T_DEC`. We need to deal with them in `prefix()` in `expr.c`. In addition, 3 opertors will be apply on rvalues (they will not appear at the left hand side of the =), namely `T_MINUS`, `T_INVERT`, `T_LOGNOT`.  
+  
+Similarly, `T_INC` and `T_DEC` can be postfix operators. We will deal with that in a function called `postfix()`, Introducing function call and array access will also move into `postfix()`.  
+  
+Meanwhile, in comparison (if and while, for statements), we convert an integer expression to a boolean value, so that the register will be set to 0 or 1.  
+  
+--------------------------------------------------------------------  
+  
+To compile and test:  
 
+gcc -o comp1 -g cg.c decl.c expr.c gen.c main.c misc.c scan.c stmt.c sym.c tree.c types.c  
+  
+./comp1 tests/input22.c  
+./comp1 tests/input23.c  
+./comp1 tests/input24.c  
+  
+gcc -o out out.s lib/printint.c  
+  
+./out
 
   
 
