@@ -468,6 +468,10 @@ int cglognot(int r) {
   return r;
 }
 
+void cgrestlocals(void) {
+  localoffset = 0;
+}
+
 // Convert an integer value to a boolean value. Jump 
 // if it's an IF or WHILE operation
 // The logic here (the condition logic) needs to be revised

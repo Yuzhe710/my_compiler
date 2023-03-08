@@ -149,7 +149,11 @@ int genAST(struct ASTnode *n, int label, int parentASTop) {
         case A_ASSIGN:
             // Are we assigning to an identifier or through a pointer?
             switch (n->right->op) {
-                case A_IDENT: return cgstorglob(leftreg, n->right->v.id);
+                case A_IDENT: 
+                    if (Symtable[n->right->v.id]->class == C_LOCAL)
+                        return cgstorlocal(leftreg, n->right->v.id);
+                    else 
+                        return cgstorglob(leftreg, n->right->v.id);
                 case A_DEREF: return cgstorderef(leftreg, rightreg, n->right->type);
                 default: fatald("Can't A_ASSIGN in genAST(), op", n->op);
             }
@@ -249,6 +253,10 @@ int genglobstr(char *strvalue) {
     int l = genlabel();
     cgglobstr(l, strvalue);
     return l;
+}
+
+void genresetlocals(void) {
+    cgresetlocals();
 }
 
 int gengetlocaloffset(int type, int isparam) {

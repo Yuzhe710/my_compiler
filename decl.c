@@ -80,6 +80,8 @@ struct ASTnode *function_declaration(int type) {
     nameslot = addglob(Text, type, S_FUNCTION, endlabel, 0);
     Functionid = nameslot;
 
+    genresetlocals();   // Reset position of new locals
+
     matchlparen();
     matchrparen();
 

@@ -25,6 +25,7 @@ int genlabel(void);
 int genprimsize(int type);
 int genglobstr(char *strvalue);
 int gengetlocaloffset(int type, int isparam);
+void genresetlocals(void);
 
 //int interpretAST(struct ASTnode *n);
 // void generatecode(struct ASTnode *n);
