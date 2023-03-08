@@ -100,7 +100,8 @@ void cgfuncpreamble(int id) {
   // 32-47 will output 32
   // ...
   stackoffset = (localoffset+15) & ~15;
-
+  printf("localoffset is %d\n", localoffset);
+  printf("stackoffset is %d\n", stackoffset);
   fprintf(Outfile,
 	  "\t.globl\t%s\n"
 	  "\t.type\t%s, @function\n"
@@ -466,10 +467,6 @@ int cglognot(int r) {
   fprintf(Outfile, "\tsete\t%s\n", breglist[r]);
   fprintf(Outfile, "\tmovzbq\t%s, %s\n", breglist[r], reglist[r]);
   return r;
-}
-
-void cgrestlocals(void) {
-  localoffset = 0;
 }
 
 // Convert an integer value to a boolean value. Jump 
