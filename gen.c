@@ -251,6 +251,10 @@ int genglobstr(char *strvalue) {
     return l;
 }
 
+int gengetlocaloffset(int type, int isparam) {
+  return (cggetlocaloffset(type, isparam));
+}
+
 // void generatecode(struct ASTnode *n) {
 //     int reg;
 

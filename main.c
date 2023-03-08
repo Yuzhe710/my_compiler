@@ -10,6 +10,8 @@
 static void init() {
     Line = 1;
     Putback = '\n';
+    Globs = 0;
+    Locls = NSYMBOLS - 1;
 }
 
 // Print out a usage message if arguments are wrong
@@ -45,7 +47,7 @@ int main(int argc, char *argv[]) {
 
     Text = (char*) malloc(513); 
     for (int i = 0; i < 1024; i ++) {
-        Gsym[i] = (struct symtable *)malloc(sizeof(struct symtable));
+        Symtable[i] = (struct symtable *)malloc(sizeof(struct symtable));
     }
 
     init();

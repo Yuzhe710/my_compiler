@@ -11,7 +11,7 @@ struct ASTnode *single_statement(void) {
         case T_LONG:
             type = parse_type();
             matchident();
-            var_declaration(type);
+            var_declaration(type, 1);
             return NULL;
         case T_IF:
             return if_statement();
@@ -217,7 +217,7 @@ struct ASTnode *return_statement(void) {
     struct ASTnode *tree;
 
     // Can't return a value if function returns P_VOID
-    if (Gsym[Functionid]->type == P_VOID)
+    if (Symtable[Functionid]->type == P_VOID)
         fatal("Can't return from a void function");
     
     // Ensure we have 'return' '('
@@ -226,7 +226,7 @@ struct ASTnode *return_statement(void) {
     // Parse the following expression
     tree = binexpr(0);
 
-    tree = modify_type(tree, Gsym[Functionid]->type, 0);
+    tree = modify_type(tree, Symtable[Functionid]->type, 0);
     if (tree == NULL)
         fatal("Incompatible type to print");
 

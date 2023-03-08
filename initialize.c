@@ -6,6 +6,9 @@ FILE *Infile;
 FILE *Outfile;
 struct token Token;
 char *Text;
-struct symtable *Gsym[1024];
+struct symtable *Symtable[1024];
+
 int Functionid = 0;
 int O_dumpAST;
+int Globs;
+int Locls;

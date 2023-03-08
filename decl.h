@@ -24,6 +24,7 @@ void genglobsym(int id);
 int genlabel(void);
 int genprimsize(int type);
 int genglobstr(char *strvalue);
+int gengetlocaloffset(int type, int isparam);
 
 //int interpretAST(struct ASTnode *n);
 // void generatecode(struct ASTnode *n);
@@ -65,6 +66,14 @@ int cgshr(int r1, int r2);
 int cglognot(int r);
 int cgboolean(int r, int op, int label);
 int cgloadglob(int id, int op);
+void cgtextseg(void);
+void cgdataseg(void);
+void cgresetlocals(void);
+int cggetlocaloffset(int type, int isparam);
+int cgloadlocal(int id, int op);
+int cgloadglobstr(int id);
+int cgstorlocal(int r, int id);
+
 
 // stmt.c
 struct ASTnode *single_statement(void);
@@ -89,11 +98,14 @@ void fatalc(char *s, int c);
 
 // sym.c
 int findglob(char *s);
+int findlocl(char *s);
 int addglob(char* name, int type, int stype, int endlabel, int size);
+int addlocl(char *name, int type, int stype, int endlabel, int size);
+int findsymbol(char *s);
 
 // decl.c
 int parse_type(void);
-void var_declaration(int type);
+void var_declaration(int type, int islocal);
 void global_declarations(void);
 
 struct ASTnode *function_declaration(int type);

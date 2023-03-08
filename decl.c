@@ -29,9 +29,7 @@ int parse_type() {
 }
 
 // Parse the declaration of variable
-// It must be the 'int' token followed by an identifier 
-// and a semicolon. Add the identifier to symbol table
-void var_declaration(int type) {
+void var_declaration(int type, int islocal) {
     int id;
 
     // Text now has the identifier's name
@@ -43,8 +41,11 @@ void var_declaration(int type) {
         if (Token.token == T_INTLIT) {
             // Add this as a known array and generate its space in assembly
             // We treat the array as a pointer to its elements' type
-            id = addglob(Text, pointer_to(type), S_ARRAY, 0, Token.intvalue);
-            genglobsym(id);
+            if (islocal) {
+                addlocl(Text, pointer_to(type), S_ARRAY, 0, Token.intvalue);
+            } else {
+                addglob(Text, pointer_to(type), S_ARRAY, 0, Token.intvalue);
+            }
         }
 
         // Ensure we have a following ']'
@@ -55,8 +56,11 @@ void var_declaration(int type) {
         // Text now has the identifier's name
         // Add it as a known identifier
         // and generate its space in assembly
-        id = addglob(Text,type, S_VARIABLE, 0, 1);
-        genglobsym(id);
+        if (islocal) {
+            addlocl(Text, type, S_VARIABLE, 0, 1);
+        } else {
+            addglob(Text, type, S_VARIABLE, 0, 1);
+        }
     }
     
     // Get the trailing semicolon
@@ -119,8 +123,8 @@ void global_declarations(void) {
             tree = function_declaration(type);
             genAST(tree, NOREG, 0);
         } else {
-            // Parse the global variable declaration
-            var_declaration(type);
+            // Parse the global variable declaration, here the scope is global
+            var_declaration(type, 0);
         }
 
         // Stop when we have reached EOF
