@@ -28,9 +28,16 @@ int parse_type() {
 
 }
 
-// Parse the declaration of variable
-void var_declaration(int type, int islocal) {
-    int id;
+// variable_delaration: type identifier ';'
+//      | type identifier '[' INTLIT ']' ':'
+//      ;
+// 
+// Parse the declaration of a scalar variable or an array
+// with a given size.
+// The identifier has already been scanned and we already have the type
+// islocal is set if this is a local variable
+// isparam is set if this local variable is a function parameter
+void var_declaration(int type, int islocal, int isparam) {
 
     // Text now has the identifier's name
     // If the next token is a '[' 
@@ -57,20 +64,57 @@ void var_declaration(int type, int islocal) {
         // Add it as a known identifier
         // and generate its space in assembly
         if (islocal) {
-            addlocl(Text, type, S_VARIABLE, 0, 1);
+            if (addlocl(Text, type, S_VARIABLE, isparam, 1) == -1)
+                fatals("Duplicate local variable declaration", Text);
         } else {
             addglob(Text, type, S_VARIABLE, 0, 1);
         }
     }
     
     // Get the trailing semicolon
-    matchsemi();
+    // matchsemi();
+}
+
+// param_declaration: <null>
+//           | variable_declaration
+//           | variable_declaration ',' param_declaration
+// 
+// Parse the parameters in parenthesis after the function name.
+// Add them as symbols to the symvol table and return the number
+// of parameters
+static int param_declaration(void) {
+    int type;
+    int numparam = 0;
+
+    // Loop until the final right parenthesis
+    while (Token.token != T_RPAREN) {
+        // Get the type and identifier
+        // add it to the symbol table
+        type = parse_type();
+        matchident();
+        var_declaration(type, 1, 1);
+        numparam++;
+
+        // Must have a ',' or ')' at the point
+        switch (Token.token) {
+            case T_COMMA: 
+                scan(&Token);
+                break;
+            case T_RPAREN:
+                break;
+            default:
+                fatald("Unexpected token in parameter list", Token.token);
+        }
+    }
+
+    // Return the count of parameters
+    return numparam;
 }
 
 // Parse the declaration of a simplistic function
 struct ASTnode *function_declaration(int type) {
     struct ASTnode *tree, *finalstmt;
-    int nameslot, endlabel;
+    int nameslot, endlabel, numparam;
 
     
     // Get a label id for the end label (which can be jumped to)
@@ -80,9 +124,11 @@ struct ASTnode *function_declaration(int type) {
     nameslot = addglob(Text, type, S_FUNCTION, endlabel, 0);
     Functionid = nameslot;
 
-    genresetlocals();   // Reset position of new locals
+    // genresetlocals();   // Reset position of new locals
 
     matchlparen();
+    numparam = param_declaration();
+    Symtable[nameslot]->nelems = numparam;
     matchrparen();
 
     // Get the AST for the body
@@ -106,7 +152,7 @@ struct ASTnode *function_declaration(int type) {
 
     // Return an A_FUNCTION node which has the function's nameslot
     // and the compound statement sub-tree
-    return mkastunary(A_FUNCTION, P_VOID, tree, nameslot);
+    return mkastunary(A_FUNCTION, type, tree, nameslot);
 }
 
 // Parse one or more global declarations 
@@ -124,9 +170,13 @@ void global_declarations(void) {
         if (Token.token == T_LPAREN) {
             tree = function_declaration(type);
             genAST(tree, NOREG, 0);
+
+            // Now free the symbols associated with this function
+            freelocsyms();
         } else {
             // Parse the global variable declaration, here the scope is global
-            var_declaration(type, 0);
+            var_declaration(type, 0, 0);
+            matchsemi();
         }
 
         // Stop when we have reached EOF

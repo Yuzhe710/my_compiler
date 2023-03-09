@@ -28,7 +28,7 @@ enum {
     // Structural tokens
     T_INTLIT, T_STRLIT, T_SEMI, T_IDENT,
     T_LBRACE, T_RBRACE, T_LPAREN, T_RPAREN,
-    T_LBRACKET, T_RBRACKET
+    T_LBRACKET, T_RBRACKET, T_COMMA
 };
 
 // token structure
@@ -85,8 +85,9 @@ enum {
 
 // Storage class
 enum {
-    C_GLOBAL = 1,       // Globally visable symbol
-    C_LOCAL             // Locally visible symbol
+    C_GLOBAL = 1,        // Globally visable symbol
+    C_LOCAL,             // Locally visible symbol
+    C_PARAM              // Locally visible function parameter
 };
 
 
@@ -101,4 +102,6 @@ struct symtable {
     int size;        // Number of elements in the symbol
     int posn;        // For locals, the negative offset 
                      // from the stack base pointer
+
+    #define nelems posn    // For Functions, the number of parameters
 };

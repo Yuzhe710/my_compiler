@@ -25,10 +25,13 @@ void cgdataseg() {
 // List of available registers and names, in our code these are seen as generic registers as r0, r1, r2, r3
 // these 4 are all general purpose registers in x86-64
 // and byte registers
-static int freereg[4];  // 1 means available, 0 means unavailable
-static char *reglist[4] = {"%r8", "%r9", "%r10", "%r11"};
-static char *breglist[4] = {"%r8b", "%r9b", "%r10b", "%r11b"};
-static char *dreglist[4] = {"%r8d", "%r9d", "%r10d", "%r11d"};
+// The list also includes the registers used to hold function parameters
+#define NUMFREEREGS 4
+#define FIRSTPARAMREG 9   // Position of first parameter register
+static int freereg[NUMFREEREGS];  // 1 means available, 0 means unavailable
+static char *reglist[] = {"%r10", "%r11", "%r12", "%r13", "%r9", "%r8", "%rcx", "%rdx", "%rsi", "%rdi"};
+static char *breglist[] = {"%r10b", "%r11b", "%r12b", "%r13b", "%r9b", "%r8b", "%cl", "%dl", "%sil", "%dil"};
+static char *dreglist[] = {"%r10d", "%r11d", "%r12d", "%r13d", "%r9d", "%r8d", "%ecx", "%edx", "%esi", "%edi"};
 
 // List of comparison instructions
 // in AST order: A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE
@@ -50,7 +53,7 @@ void cgresetlocals(void) {
 
 // Get the position of the next local variable.
 // Use the isparam flag to allocate a parameter (not yet implemented)
-int cggetlocaloffset(int type, int isparam) {
+static int newlocaloffset(int type) {
   // Decrement the offset by a minimum of 4 bytes
   // and allocate on the stack
   localoffset += (cgprimsize(type) > 4) ? cgprimsize(type) : 4;
@@ -65,7 +68,7 @@ void freeall_registers(void) {
 // Allocate a free register. Return the number of
 // the register. Die if no available registers.
 static int alloc_register(void) {
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < NUMFREEREGS; i++) {
     if (freereg[i]) {
       freereg[i] = 0;
       return (i);
@@ -91,7 +94,46 @@ void cgpreamble() {
 // Print out a function preamble
 void cgfuncpreamble(int id) {
   char *name = Symtable[id]->name;
+  int i;
+  int paramOffset = 16;         // Any pushed params start at this stack offset
+  int paramReg = FIRSTPARAMREG; // Index to the first param register in above reg lists
   cgtextseg();
+  localoffset = 0;
+
+  // Align the stack pointer to be a multiple of 16
+  // less than its previous value
+  // 0-16 will output 0
+  // 16-31 will output 16
+  // 32-47 will output 32
+  // ...
+  // stackoffset = (localoffset+15) & ~15;
+  fprintf(Outfile,
+	  "\t.globl\t%s\n"
+	  "\t.type\t%s, @function\n"
+	  "%s:\n" "\tpushq\t%%rbp\n"
+	  "\tmovq\t%%rsp, %%rbp\n", name, name, name);
+
+  // Copy any in-register parameters to the stack (will be lower than rbp)
+  // Stop after no more than six parameter registers
+  for (i = NSYMBOLS - 1; i > Locls; i--) {
+    if (Symtable[i]->class != C_PARAM)
+      break;
+    if (i < NSYMBOLS - 6)
+      break;
+    Symtable[i]->posn = newlocaloffset(Symtable[i]->type);  // posn will be negative here
+    cgstorlocal(paramReg--, i);
+  }
+
+  // For the remainder, if they are a parameter then they are 
+  // already on the stack. If only a local, make a stack position.
+  for (; i > Locls; i--) {
+    if (Symtable[i]->class == C_PARAM) {
+      Symtable[i]->posn = paramOffset;
+      paramOffset += 8;
+    } else {
+      Symtable[i]->posn = newlocaloffset(Symtable[i]->type);
+    }
+  }
 
   // Align the stack pointer to be a multiple of 16
   // less than its previous value
@@ -100,14 +142,7 @@ void cgfuncpreamble(int id) {
   // 32-47 will output 32
   // ...
   stackoffset = (localoffset+15) & ~15;
-  printf("localoffset is %d\n", localoffset);
-  printf("stackoffset is %d\n", stackoffset);
-  fprintf(Outfile,
-	  "\t.globl\t%s\n"
-	  "\t.type\t%s, @function\n"
-	  "%s:\n" "\tpushq\t%%rbp\n"
-	  "\tmovq\t%%rsp, %%rbp\n"
-    "\taddq\t$%d,%%rsp\n", name, name, name, -stackoffset);
+  fprintf(Outfile, "\taddq\t$%d,%%rsp\n", -stackoffset);
 }
 
 // Print out a function postamble

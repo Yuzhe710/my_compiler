@@ -842,7 +842,7 @@ Local variables usually need to be stored it's function's stack frame. To know m
   
 To our implementation of local variables, firstly we extend the structure of symbol table, we now have fields including the name of a symbol, primitive type for the symbol, structural type (indicating variable, function, or array), storage class for the symbol (global or local), end label (for functions), size (number of elements in the symbol) and posn (for locals, the negative offset from the stack base pointer).  
   
-Next, we modify the symbol table array to store both global and local symbols. Visually, the global symbols are stored in the left-hand side of the symbol table with `Globs` pointing at the next free global symbol slot and `Locls` pointing at the next free local symbol slot.  
+Next, we modify the symbol table array to store both global and local symbols. Visually, the global symbols are stored in the left-hand side of the symbol table with `Globs` pointing at the next free global symbol slot and local symbols are stored in the right-hand side of the symbol table with `Locls` pointing at the next free local symbol slot.  
 ```
 0xxxx......................................xxxxxxxxxxxxNSYMBOLS-1
      ^                                    ^

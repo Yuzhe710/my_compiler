@@ -11,7 +11,8 @@ struct ASTnode *single_statement(void) {
         case T_LONG:
             type = parse_type();
             matchident();
-            var_declaration(type, 1);
+            var_declaration(type, 1, 0);
+            matchsemi();
             return NULL;
         case T_IF:
             return if_statement();
