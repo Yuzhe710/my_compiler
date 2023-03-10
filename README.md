@@ -866,9 +866,96 @@ gcc -o out out.s lib/printint.c
   
 ./out
   
+## Part_22 Function Parameters  
+In this part, we implement the function parameters. As a recap, according to the stack structure image from Eli Bendersky's article on the [stack frame layout on x86-64](https://eli.thegreenplace.net/2011/09/06/stack-frame-layout-on-x86-64/), up to six "call by value" arguments to a function are passed in via the registers '%rdi' to '%r9'. For more than six arguments the remaining arguments
+are pushed on the stack.  
+  
+When the function is called, it pushes the previous stack base pointer onto the stack, moves the stack base pointer down to point at the same location as the stack pointer, and then moves the stack pointer to the lowest local variable (at minimum). And we also have to lower the stack pointer down to be a multiple of sixteen, so that the stack base pointer is aligned correctly before we call another function.  
+  
+The arguments which were pushed on the stack are going to remain there, with an offset from the stack base pointer which is positive. All the register-passed arguments we will copy onto the stack, and also set up locations on the stack for our local variables. These will have offsets from the stack base pointer which are negative.  
+  
+With that goal, we first add a new token T_COMMA to represent comma between function parameters.  
+```c
+int function(int x, char y, long z) { ... }
+```
+We also have a new storage symbol, C_PARAM, to indicate the symbol we have is a function parameter.
+```c
+// Storage classes
+enum {
+        C_GLOBAL = 1,           // Globally visible symbol
+        C_LOCAL,                // Locally visible symbol
+        C_PARAM                 // Locally visible function parameter
+};
+```
+Where do we store those parameters? We choose to store them at both global and local locations of the symbol table when these parameters are parsed. In the global symbol list, we will define the function's symbol first with an C_GLOBAL, S_FUNCTION entry. Then, we will define all the parameters with consecutive entries that are marked as C_PARAM. This is the function's *prototype*. It means that, when we call the function later, we can compare the argument list to the parameter list and ensure that they match. At the same time, the same list of parameters are stored in the local symbol list, marked as C_PARAM instead of C_LOCAL. This allows us to distinguish between the variables someone else sent to us, and the variables we declared ourselves. As a result, when finding a global symbol, we will skip the symbol who is marked C_PARAM. 
+  
+In our function preamble, we need to check the local end side of symbol table to find if there are more than two function parameters. We will store the first six (if there are) symbols into stack, same as storing a local variable. If there are more than six function parameters, the remaining ones are already on stack, with positive offsets from the stack base pointer %rbp.  
+  
+And when loading an identifier, based on its storage class, if it is a global variable, it is loaded as a global variable. If it is a local variable or function parameter, it is loaded as a local variable.  
+  
+--------------------------------------------------------------------  
+  
+To compile and test:  
+```
+gcc -o comp1 -g -Wall cg.c decl.c expr.c gen.c main.c misc.c
+      scan.c stmt.c sym.c tree.c types.c
+./comp1 tests/input27a.c
+cc -o out tests/input27b.c out.s lib/printint.c 
+./out
+```
+And we can examine the assembly code for `param8()`:  
 
-
-
+```
+param8:
+        pushq   %rbp                    # Save %rbp, move %rsp
+        movq    %rsp, %rbp
+        movl    %edi, -4(%rbp)          # Copy six arguments into locals
+        movl    %esi, -8(%rbp)          # on the stack
+        movl    %edx, -12(%rbp)
+        movl    %ecx, -16(%rbp)
+        movl    %r8d, -20(%rbp)
+        movl    %r9d, -24(%rbp)
+        addq    $-32,%rsp               # Lower stack pointer by 32
+        movslq  -4(%rbp), %r10
+        movq    %r10, %rdi
+        call    printint                # Print -4(%rbp), i.e. a
+        movq    %rax, %r11
+        movslq  -8(%rbp), %r10
+        movq    %r10, %rdi
+        call    printint                # Print -8(%rbp), i.e. b
+        movq    %rax, %r11
+        movslq  -12(%rbp), %r10
+        movq    %r10, %rdi
+        call    printint                # Print -12(%rbp), i.e. c
+        movq    %rax, %r11
+        movslq  -16(%rbp), %r10
+        movq    %r10, %rdi
+        call    printint                # Print -16(%rbp), i.e. d
+        movq    %rax, %r11
+        movslq  -20(%rbp), %r10
+        movq    %r10, %rdi
+        call    printint                # Print -20(%rbp), i.e. e
+        movq    %rax, %r11
+        movslq  -24(%rbp), %r10
+        movq    %r10, %rdi
+        call    printint                # Print -24(%rbp), i.e. f
+        movq    %rax, %r11
+        movslq  16(%rbp), %r10
+        movq    %r10, %rdi
+        call    printint                # Print 16(%rbp), i.e. g
+        movq    %rax, %r11
+        movslq  24(%rbp), %r10
+        movq    %r10, %rdi
+        call    printint                # Print 24(%rbp), i.e. h
+        movq    %rax, %r11
+        movq    $0, %r10
+        movl    %r10d, %eax
+        jmp     L1
+L1:
+        addq    $32,%rsp                # Raise stack pointer by 32
+        popq    %rbp                    # Restore %rbp and return
+        ret
+```
   
 
   

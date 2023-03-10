@@ -2,6 +2,58 @@
 #include "scan.h"
 #include "decl.h"
 
+// expression_list: <null>
+//        | expression
+//        | expression ',' expression_list
+//        ;
+
+// Parse a list of zero or more comma-seperated expressions and 
+// return an AST composed of A_GLUE nodes with the left-hand child 
+// being the sub-tree of previous expressions (or NULL) and the right-hand 
+// child being the next expression. Each A_GLUE node will have the size field 
+// set to the number of expressions in the tree at this point. If no expressions
+// are parsed, NULL is returned.
+//              A_FUNCCALL
+//                  /
+//               A_GLUE
+//                /   \
+//            A_GLUE  expr4
+//             /   \
+//         A_GLUE  expr3
+//          /   \
+//      A_GLUE  expr2
+//      /    \
+//    NULL  expr1
+static struct ASTnode *expression_list(void) {
+    struct ASTnode *tree = NULL;
+    struct ASTnode *child = NULL;
+    int exprcount = 0;
+
+    // Loop until the final right parenthesis
+    while (Token.token != T_RPAREN) {
+        // Parse the next expression and increment the expression count
+        child = binexpr(0);
+        exprcount++;
+
+        // Build an A_GLUE AST node with the previous tree as the left child
+        // and the new expression as the right child. Store the expression count.
+        tree = mkastnode(A_GLUE, P_NONE, tree, NULL, child, exprcount);
+
+        // Must have a ',' or ')' at this point
+        switch (Token.token) {
+            case T_COMMA:
+                scan(&Token);
+                break;
+            case T_RPAREN:
+                break;
+            default:
+                fatald("Unexpected token in expression list", Token.token);
+        }
+    }
+    // Return the tree of expressions
+    return tree;
+}
+
 // Parse a function call with a single expression
 // argument and return its AST
 struct ASTnode *funccall(void) {
@@ -18,7 +70,9 @@ struct ASTnode *funccall(void) {
     matchlparen();
 
     // Parse the following expression
-    tree = binexpr(0);
+    tree = expression_list();
+
+    // XXX Check type of each argument against the function's prototype
 
     // Build the function call AST node. Store the function's
     // return type as this node's type.
@@ -297,14 +351,12 @@ struct ASTnode *binexpr(int ptp) {
     struct ASTnode *ltemp, *rtemp;
     int ASTop;
     int tokentype;
-    //printf("%d\n", Token.intvalue);
-    // Get the integer literal on the left
-    // get the next token at the same time
+    
     left = prefix();
-
+    printf("Token is %d, Text is %s\n", Token.token, Text);
     // if hit a semi colon or ')', just return the left node
     tokentype = Token.token;
-    if (tokentype == T_SEMI || tokentype == T_RPAREN || tokentype == T_RBRACKET) {
+    if (tokentype == T_SEMI || tokentype == T_RPAREN || tokentype == T_RBRACKET || tokentype == T_COMMA) {
         left->rvalue = 1;
         return left;
     }
@@ -321,7 +373,7 @@ struct ASTnode *binexpr(int ptp) {
         // Ensure the two types are compatible by trying
         // to modify each tree to match the other's type.
         ASTop = getoperation(tokentype);
-
+        // printf("ASTop is %d\n", ASTop);
         if (ASTop == A_ASSIGN) {
             // Assignment
             // Make the right tree into an rvalue
@@ -378,7 +430,7 @@ struct ASTnode *binexpr(int ptp) {
         // If we hit a semi-colon, just return the left node
         tokentype = Token.token;
         if (tokentype == T_SEMI || tokentype == T_RPAREN
-            || tokentype == T_RBRACKET) {
+            || tokentype == T_RBRACKET || tokentype == T_COMMA) {
             left->rvalue = 1;
             return left;
         }

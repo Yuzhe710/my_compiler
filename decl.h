@@ -48,7 +48,7 @@ void cglabel(int l);
 void cgjump(int l);
 int cgwiden(int r, int oldtype, int newtype);
 int cgprimsize(int type);
-int cgcall(int r, int id);
+int cgcall(int id, int numargs);
 void cgreturn(int reg, int id);
 int cgaddress(int id);
 int cgderef(int r, int type);
@@ -72,6 +72,7 @@ void cgresetlocals(void);
 int cgloadlocal(int id, int op);
 int cgloadglobstr(int id);
 int cgstorlocal(int r, int id);
+void cgcopyarg(int r, int argposn);
 
 
 // stmt.c

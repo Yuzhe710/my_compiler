@@ -22,3 +22,11 @@ int param0() {
   printint(a); printint(b); printint(c); printint(d); printint(e);
   return(0);
 }
+
+int main() {
+  param8(1,2,3,4,5,6,7,8);
+  param5(1,2,3,4,5);
+  param2(1,2);
+  param0();
+  return(0);
+}

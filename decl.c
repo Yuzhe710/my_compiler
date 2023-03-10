@@ -128,7 +128,7 @@ struct ASTnode *function_declaration(int type) {
 
     matchlparen();
     numparam = param_declaration();
-    printf("%s\n", Symtable[1016]->name);
+    //printf("%s\n", Symtable[1023]->name);
     Symtable[nameslot]->nelems = numparam;
     matchrparen();
 
@@ -170,8 +170,8 @@ void global_declarations(void) {
         matchident();
         if (Token.token == T_LPAREN) {
             tree = function_declaration(type);
+            
             genAST(tree, NOREG, 0);
-
             // Now free the symbols associated with this function
             freelocsyms();
         } else {

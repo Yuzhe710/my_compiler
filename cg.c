@@ -142,8 +142,6 @@ void cgfuncpreamble(int id) {
   // 33-48 will output 48
   // ...
   stackoffset = (localoffset+15) & ~15;
-  printf("localoffset is %d\n", localoffset);
-  printf("stackoffset is %d\n", stackoffset);
   fprintf(Outfile, "\taddq\t$%d,%%rsp\n", -stackoffset);
 }
 
@@ -232,14 +230,17 @@ int cgstorglob(int r, int id) {
 
 // Store a register's value into a local variable
 int cgstorlocal(int r, int id) {
+  printf("symbol is %s\n", Symtable[id]->name);
   switch (Symtable[id]->type) {
     case P_CHAR:
       fprintf(Outfile, "\tmovb\t%s, %d(%%rbp)\n", breglist[r],
 	      Symtable[id]->posn);
       break;
     case P_INT:
+      printf("INT symbol is %s\n", Symtable[id]->name);
       fprintf(Outfile, "\tmovl\t%s, %d(%%rbp)\n", dreglist[r],
 	      Symtable[id]->posn);
+      printf("We finish with INT Symbol %s\n", Symtable[id]->name);
       break;
     case P_LONG:
     case P_CHARPTR:
@@ -251,6 +252,7 @@ int cgstorlocal(int r, int id) {
     default:
       fatald("Bad type in cgstorlocal:", Symtable[id]->type);
   }
+  printf("We finish here!\n");
   return (r);
 }
 
@@ -339,17 +341,40 @@ int cgprimsize(int type) {
   return psize[type];
 }
 
+// Given a register with an argument value, 
+// copy this argument into the argposn'th parameter 
+// in preparation for a future function call. Note that
+// argposn is 1,2,3,4..., never zero
+void cgcopyarg(int r, int argposn) {
+
+  // If this is above the sixth argument, simply push the register 
+  // on the stack. We rely on being called with successive 
+  // arguments in the correct order for x86-64
+  if (argposn > 6) {
+    fprintf(Outfile, "\tpushq\t%s\n", reglist[r]);
+  } else {
+    // Otherwise, copy the value into one of the six registers
+    // used to hold parameter values
+    fprintf(Outfile, "\tmovq\t%s, %s\n", reglist[r], reglist[FIRSTPARAMREG - argposn + 1]);
+  }
+}
+
 // Call a function with one argument from the given register
 // Return the register with the result
 // In x86-64, we need to copy the register with the argument value into %rdi
 // On returnm we need to copy the returned value from %rax into the register that will have this new value
-int cgcall(int r, int id) {
+// after calling the function, we pop off any arguments pushed on the stack
+int cgcall(int id, int numargs) {
   // Get a new register
   int outr = alloc_register();
-  fprintf(Outfile, "\tmovq\t%s, %%rdi\n", reglist[r]);
+  // Call the function
   fprintf(Outfile, "\tcall\t%s\n", Symtable[id]->name);
+  // Remove any arguments pushed on the stack
+  if (numargs > 6) 
+    fprintf(Outfile, "\taddq\t$%d, %%rsp\n", 8*(numargs-6));
+
+  // and copy the return value into our register
   fprintf(Outfile, "\tmovq\t%%rax, %s\n", reglist[outr]);
-  free_register(r);
   return outr;
 }
 

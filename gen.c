@@ -78,6 +78,34 @@ static int genWHILE(struct ASTnode *n) {
 
 }
 
+// Generate the code to copy the arguments of a function call
+// to its parameters, then call the function itself. Return 
+// the register that holds the function's return value.
+static int gen_funccall(struct ASTnode *n) {
+    struct ASTnode *gluetree = n->left;
+    int reg;
+    int numargs = 0;
+
+    // If there is a list of arguments, walk this list
+    // from the last argument (right-hand child) to the 
+    // first
+    while (gluetree) {
+        // Calculate the expression's value
+        reg = genAST(gluetree->right, NOLABEL, gluetree->op);
+        // Copy this into the n'th function parameter: size is 1, 2, 3, ...
+        cgcopyarg(reg, gluetree->v.size);
+        // Keep the first (highest) number of arguments
+        if (numargs == 0) numargs = gluetree->v.size;
+        genfreeregs();
+        gluetree = gluetree->left;
+    }
+
+    // Call the function, clean up the stack (based on numargs),
+    // and return its result
+    return cgcall(n->v.id, numargs);
+
+}
+
 // Given an AST, the register that holds the previous 
 // rvalue, and the AST op of the parent, generate assembly code recursively
 // return the register id containing tree's final value
@@ -90,18 +118,21 @@ int genAST(struct ASTnode *n, int label, int parentASTop) {
             return genIFAST(n);
         case A_WHILE:
             return genWHILE(n);
+        case A_FUNCCALL:
+            return gen_funccall(n);
         case A_GLUE:
             // generate for eah child,
             // and free registers after each child
-            genAST(n->left, NOREG, n->op);
+            printf("we are glue\n");
+            genAST(n->left, NOLABEL, n->op);
             genfreeregs();
-            genAST(n->right, NOREG, n->op);
+            genAST(n->right, NOLABEL, n->op);
             genfreeregs();
             return NOREG;
         case A_FUNCTION:
             // Generate the function's preamble before the code
             cgfuncpreamble(n->v.id);
-            genAST(n->left, NOREG, n->op);
+            genAST(n->left, NOLABEL, n->op);
             cgfuncpostamble(n->v.id);
             return NOREG;
     }
@@ -110,9 +141,9 @@ int genAST(struct ASTnode *n, int label, int parentASTop) {
 
     // Get the left and right sub-tree values
     if (n->left) 
-        leftreg = genAST(n->left, NOREG, n->op); // the left sub-tree will only be assignments and evaluated first, so no registers containg previous result is need
+        leftreg = genAST(n->left, NOLABEL, n->op); // the left sub-tree will only be assignments and evaluated first, so no registers containg previous result is need
     if (n->right)
-        rightreg = genAST(n->right, leftreg, n->op); // the right sub-tree will be lvalue (identifier), so register containing left expression's result is need
+        rightreg = genAST(n->right, NOLABEL, n->op); // the right sub-tree will be lvalue (identifier), so register containing left expression's result is need
     
     switch(n->op) {
         case A_ADD:
@@ -155,10 +186,12 @@ int genAST(struct ASTnode *n, int label, int parentASTop) {
             // Are we assigning to an identifier or through a pointer?
             switch (n->right->op) {
                 case A_IDENT: 
-                    if (Symtable[n->right->v.id]->class == C_LOCAL)
-                        return cgstorlocal(leftreg, n->right->v.id);
-                    else 
+                    if (Symtable[n->right->v.id]->class == C_GLOBAL)
                         return cgstorglob(leftreg, n->right->v.id);
+                    else {
+                        printf("here is %d\n", Symtable[n->right->v.id]->class);
+                        return cgstorlocal(leftreg, n->right->v.id);
+                    }
                 case A_DEREF: return cgstorderef(leftreg, rightreg, n->right->type);
                 default: fatald("Can't A_ASSIGN in genAST(), op", n->op);
             }
@@ -168,8 +201,6 @@ int genAST(struct ASTnode *n, int label, int parentASTop) {
         case A_RETURN:
             cgreturn(leftreg, Functionid);
             return NOREG;
-        case A_FUNCCALL:
-            return cgcall(leftreg, n->v.id);
         case A_ADDR:
             return cgaddress(n->v.id);
         case A_DEREF:

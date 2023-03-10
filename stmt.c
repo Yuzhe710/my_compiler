@@ -229,7 +229,7 @@ struct ASTnode *return_statement(void) {
 
     tree = modify_type(tree, Symtable[Functionid]->type, 0);
     if (tree == NULL)
-        fatal("Incompatible type to print");
+        fatal("Incompatible type to return");
 
     // Add on the A_RETURN node
     tree = mkastunary(A_RETURN, P_NONE, tree, 0);
