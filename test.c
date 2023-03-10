@@ -2,5 +2,5 @@
 #include <string.h>
 
 int main() {
-  printf("%d", 16 & ~15);
+  printf("%d", 33+15 & ~15);
 }

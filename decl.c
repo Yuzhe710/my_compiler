@@ -49,7 +49,8 @@ void var_declaration(int type, int islocal, int isparam) {
             // Add this as a known array and generate its space in assembly
             // We treat the array as a pointer to its elements' type
             if (islocal) {
-                addlocl(Text, pointer_to(type), S_ARRAY, 0, Token.intvalue);
+                // addlocl(Text, pointer_to(type), S_ARRAY, 0, Token.intvalue);
+                fatal("For now, declaration of local arrays is not implemented");
             } else {
                 addglob(Text, pointer_to(type), S_ARRAY, 0, Token.intvalue);
             }
@@ -94,7 +95,6 @@ static int param_declaration(void) {
         matchident();
         var_declaration(type, 1, 1);
         numparam++;
-
         // Must have a ',' or ')' at the point
         switch (Token.token) {
             case T_COMMA: 
@@ -128,6 +128,7 @@ struct ASTnode *function_declaration(int type) {
 
     matchlparen();
     numparam = param_declaration();
+    printf("%s\n", Symtable[1016]->name);
     Symtable[nameslot]->nelems = numparam;
     matchrparen();
 

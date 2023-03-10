@@ -143,10 +143,10 @@ int genAST(struct ASTnode *n, int label, int parentASTop) {
             // Load our value if we are an rvalue
             // or we are being dereferenced
             if (n->rvalue || parentASTop == A_DEREF) {
-                if (Symtable[n->v.id]->class == C_LOCAL) {
-                    return cgloadlocal(n->v.id, n->op);
-                } else {
+                if (Symtable[n->v.id]->class == C_GLOBAL) {
                     return cgloadglob(n->v.id, n->op);
+                } else {
+                    return cgloadlocal(n->v.id, n->op);
                 }
             } else {
                 return NOREG;

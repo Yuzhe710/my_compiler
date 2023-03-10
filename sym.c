@@ -103,7 +103,6 @@ int addglob(char *name, int type, int stype, int endlabel, int size) {
 // Return the slot number in the symbol table, -1 if a duplicate entry
 int addlocl(char *name, int type, int stype, int isparam, int size) {
     int localslot, globalslot;
-    
     // If this is already in the symbol table, return the existing slot
     if ((localslot = findlocl(name)) != -1)
         return -1;

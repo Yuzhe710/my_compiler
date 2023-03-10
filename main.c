@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
     }
 
     // For now, ensure that void printint() and printchar() is defined
-    addglob("printint", P_CHAR, S_FUNCTION, 0, 0);
+    addglob("printint", P_INT, S_FUNCTION, 0, 0);
     addglob("printchar", P_VOID, S_FUNCTION, 0, 0);
 
     //scanfile();

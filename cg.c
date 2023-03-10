@@ -137,11 +137,13 @@ void cgfuncpreamble(int id) {
 
   // Align the stack pointer to be a multiple of 16
   // less than its previous value
-  // 0-16 will output 0
-  // 16-31 will output 16
-  // 32-47 will output 32
+  // 0-16 will output 16
+  // 17-32 will output 32
+  // 33-48 will output 48
   // ...
   stackoffset = (localoffset+15) & ~15;
+  printf("localoffset is %d\n", localoffset);
+  printf("stackoffset is %d\n", stackoffset);
   fprintf(Outfile, "\taddq\t$%d,%%rsp\n", -stackoffset);
 }
 

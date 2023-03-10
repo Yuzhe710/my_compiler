@@ -10,7 +10,7 @@ struct ASTnode *funccall(void) {
 
     // Check that the identifier has been defined
     // then make a leaf node for it.
-    if ((id = findglob(Text)) == -1) {
+    if ((id = findsymbol(Text)) == -1 || Symtable[id]->stype != S_FUNCTION) {
         fatals("Undeclared function", Text);
     }
 
@@ -37,7 +37,7 @@ static struct ASTnode *array_access(void) {
     int id;
 
     // Check 
-    if ((id = findglob(Text)) == -1 || Symtable[id]->stype != S_ARRAY) {
+    if ((id = findsymbol(Text)) == -1 || Symtable[id]->stype != S_ARRAY) {
         fatals("Undeclared array", Text);
     }
     left = mkastleaf(A_ADDR, Symtable[id]->type, id);
