@@ -955,7 +955,62 @@ L1:
         addq    $32,%rsp                # Raise stack pointer by 32
         popq    %rbp                    # Restore %rbp and return
         ret
+```  
+  
+## Part_23 Function Calls and Arguments  
+In this part, we add the ability to call functions with an arbitrary number of arguments; Previously, we were able to declare functions with parameters added to stack. Now, the argumnets's values will be copied into the function's parameters and appear as local variables.  
+  
+Again, according to the image from Eli Bendersky's article on the
+[stack frame layout on x86-64](https://eli.thegreenplace.net/2011/09/06/stack-frame-layout-on-x86-64/), up to six "call by value" arguments to a function are passed in via the registers %rdi to %r9. For more than six arguments, the ramaining arguments are pushed on the stack.  
+  
+Look closely at the argument values on the stack. Even though `h` is the
+last argument, it is pushed first on the stack (which grows downwards),
+and the `g` argument is pushed *after* the `h` argument.  
+  
+You may notice the order of arguments being put on the registers. Actually, a feature about C is that there is no defined order of expression evaluation. As noted
+[here](https://en.cppreference.com/w/c/language/eval_order):
+
+> [The] order of evaluation of the operands of any C operator, including
+  the order of evaluation of function arguments in a function-call
+  expression ... is unspecified ... . The compiler will evaluate them
+  in any order ...
+
+But because x86-64 platform expects the last argument's value to be pushed on the stack first, we will design our compiler to process arguments from the last to the first.  
+  
+For a function call `function(expr1, expr2, expr3, expr4)`, we decide to build the tree like this:
+
 ```
+                 A_FUNCCALL
+                  /
+              A_GLUE
+               /   \
+           A_GLUE  expr4
+            /   \
+        A_GLUE  expr3
+         /   \
+     A_GLUE  expr2
+     /    \
+   NULL  expr1
+```
+Each expression is on the right, and previous expressions are on the left. I will have to traverse the sub-tree of expressions right to left, to ensure that I process expr4 before expr3 in case the former has to be pushed on the x86-64 stack before the latter. Each node's level will record the nth arguments it is. This number will be used to select register which will hold that value. i.e. expr is the 4-th argument, hence it will be in reglist[-4] which is %rcx.  
+  
+In `expr.c`, we make a function `expression_list()` to build that A_GLUE'ed arguments tree. `expression_list()` will continously parse arguments, each being, for example, A_INTLIT. Hence, T_COMMA needs to be a stop parsing signal in `binexpr()`.  
+  
+Now in `genAST()`, if we meet `A_FUNCCALL`, this means that we will have an unary tree with A_GLUE being operation and possibly NULL value at left child of the tree. Hence, we should not process left and right AST before process `A_FUNCCALL` like we did before. (I stuck long at here).  
+  
+We need to keep in mind that if we have more than six arguments, we will simply push them on stack. And after we made a function call in assembly, we should free up argument spaces (if we have more than 6 arguments) on stack, by moving rsp up.  
+  
+--------------------------------------------------------------------  
+  
+To compile and test:  
+gcc -o comp1 -g -Wall cg.c decl.c expr.c gen.c main.c misc.c scan.c stmt.c sym.c tree.c types.c  
+  
+./comp1 tests/input26/27/28.c  
+  
+gcc -o out out.s lib/printint.c  
+  
+./out
+
   
 
   

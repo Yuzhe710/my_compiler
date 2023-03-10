@@ -123,7 +123,6 @@ int genAST(struct ASTnode *n, int label, int parentASTop) {
         case A_GLUE:
             // generate for eah child,
             // and free registers after each child
-            printf("we are glue\n");
             genAST(n->left, NOLABEL, n->op);
             genfreeregs();
             genAST(n->right, NOLABEL, n->op);
@@ -189,7 +188,6 @@ int genAST(struct ASTnode *n, int label, int parentASTop) {
                     if (Symtable[n->right->v.id]->class == C_GLOBAL)
                         return cgstorglob(leftreg, n->right->v.id);
                     else {
-                        printf("here is %d\n", Symtable[n->right->v.id]->class);
                         return cgstorlocal(leftreg, n->right->v.id);
                     }
                 case A_DEREF: return cgstorderef(leftreg, rightreg, n->right->type);

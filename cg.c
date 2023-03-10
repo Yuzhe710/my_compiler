@@ -230,17 +230,14 @@ int cgstorglob(int r, int id) {
 
 // Store a register's value into a local variable
 int cgstorlocal(int r, int id) {
-  printf("symbol is %s\n", Symtable[id]->name);
   switch (Symtable[id]->type) {
     case P_CHAR:
       fprintf(Outfile, "\tmovb\t%s, %d(%%rbp)\n", breglist[r],
 	      Symtable[id]->posn);
       break;
     case P_INT:
-      printf("INT symbol is %s\n", Symtable[id]->name);
       fprintf(Outfile, "\tmovl\t%s, %d(%%rbp)\n", dreglist[r],
 	      Symtable[id]->posn);
-      printf("We finish with INT Symbol %s\n", Symtable[id]->name);
       break;
     case P_LONG:
     case P_CHARPTR:
@@ -252,7 +249,6 @@ int cgstorlocal(int r, int id) {
     default:
       fatald("Bad type in cgstorlocal:", Symtable[id]->type);
   }
-  printf("We finish here!\n");
   return (r);
 }
 

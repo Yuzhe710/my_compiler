@@ -153,7 +153,6 @@ static struct ASTnode *getleft(void) {
 
             return n;
         default:
-            // printf("here is %d\n", Token.token);
             fatald("Syntax error, token", Token.token);
     }
     // scan the next token and return the leaf node
@@ -353,7 +352,6 @@ struct ASTnode *binexpr(int ptp) {
     int tokentype;
     
     left = prefix();
-    printf("Token is %d, Text is %s\n", Token.token, Text);
     // if hit a semi colon or ')', just return the left node
     tokentype = Token.token;
     if (tokentype == T_SEMI || tokentype == T_RPAREN || tokentype == T_RBRACKET || tokentype == T_COMMA) {
