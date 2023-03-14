@@ -80,8 +80,8 @@ int main(int argc, char *argv[]) {
     }
 
     // For now, ensure that void printint() and printchar() is defined
-    addglob("printint", P_INT, S_FUNCTION, 0, 0);
-    addglob("printchar", P_VOID, S_FUNCTION, 0, 0);
+    addglob("printint", P_INT, S_FUNCTION, C_GLOBAL, 0, 0);
+    addglob("printchar", P_VOID, S_FUNCTION, C_GLOBAL,0, 0);
 
     //scanfile();
     scan(&Token);                           // Get the first token from the input

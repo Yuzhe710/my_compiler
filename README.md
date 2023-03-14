@@ -1011,7 +1011,6 @@ gcc -o out out.s lib/printint.c
   
 ./out
 
-  
 
   
 

@@ -77,10 +77,11 @@ void freelocsyms(void) {
 // Add a global symbol to the symbol table. Set up its:
 // + type: char, int etc.
 // + structural type: var, function, array etc
+// + class of the symbol
 // + size: number of elements
 // + endlabel: if this is a function
 // Return the slot number in the symbol table
-int addglob(char *name, int type, int stype, int endlabel, int size) {
+int addglob(char *name, int type, int stype, int class, int endlabel, int size) {
     int slot;
 
     // if the symbol is already in symbol table
@@ -90,8 +91,10 @@ int addglob(char *name, int type, int stype, int endlabel, int size) {
     
     // otherwise create a new slot and return its number
     slot = newglob();
-    updatesym(slot, name, type, stype, C_GLOBAL, endlabel, size, 0);
-    genglobsym(slot);
+    updatesym(slot, name, type, stype, class, endlabel, size, 0);
+    // Generate the assembly for the symbol if it's global
+    if (class == C_GLOBAL)
+        genglobsym(slot);
     return slot;
 }
 
@@ -101,24 +104,19 @@ int addglob(char *name, int type, int stype, int endlabel, int size) {
 // + size: number of elements
 // + isparam: if true, this is a parameter to the function
 // Return the slot number in the symbol table, -1 if a duplicate entry
-int addlocl(char *name, int type, int stype, int isparam, int size) {
-    int localslot, globalslot;
+int addlocl(char *name, int type, int stype, int class, int size) {
+    int localslot;
     // If this is already in the symbol table, return the existing slot
     if ((localslot = findlocl(name)) != -1)
         return -1;
     
     // otherwise get a new symbol slot and a position for this local.
     // Update the symbol table entry. If this is a parameter, 
-    // also create a global C_PARAM entry to build the function's prototype
     localslot = newlocl();
-    if (isparam) {
-        updatesym(localslot, name, type, stype, C_PARAM, 0, size, 0);
-        globalslot = newglob();
-        updatesym(globalslot, name, type, stype, C_PARAM, 0, size, 0);
-    } else {
-        updatesym(localslot, name, type, stype, C_LOCAL, 0, size, 0);
-    }
     
+    updatesym(localslot, name, type, stype, class, 0, size, 0);
+    
+    // Return the local symbol's slot
     return localslot;
 }
 
@@ -133,4 +131,15 @@ int findsymbol(char *s) {
     if (slot == -1)
         slot = findglob(s);
     return slot;
+}
+
+// Given a function's slot number, copy the global parameters
+// from its prototype to be local parameters
+void copyfuncparams(int slot) {
+    int i, id = slot + 1;
+
+    for (i = 0; i < Symtable[slot]->nelems; i++, id++) {
+        addlocl(Symtable[id]->name, Symtable[id]->type, Symtable[id]->stype, 
+                Symtable[id]->class, Symtable[id]->size);
+    }
 }
