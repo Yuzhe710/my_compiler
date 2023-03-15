@@ -364,7 +364,7 @@ int cgcall(int id, int numargs) {
   // Get a new register
   int outr = alloc_register();
   // Call the function
-  fprintf(Outfile, "\tcall\t%s\n", Symtable[id]->name);
+  fprintf(Outfile, "\tcall\t%s@PLT\n", Symtable[id]->name);
   // Remove any arguments pushed on the stack
   if (numargs > 6) 
     fprintf(Outfile, "\taddq\t$%d, %%rsp\n", 8*(numargs-6));
