@@ -11,5 +11,5 @@ comp1: $(SRCS) $(HSRCS)
 clean:
 	rm -f comp1 *.o *s out
 
-test: comp1 tests/runtests
-	(cd tests; chmod +x runtests; ./runtests)
+test: comp1 test2/runtests
+	(cd test2; chmod +x runtests; ./runtests)
