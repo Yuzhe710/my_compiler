@@ -548,7 +548,7 @@ int cgboolean(int r, int op, int label) {
 int cgloadglob(int id, int op) {
   // Get a new register
   int r = alloc_register();
-
+  //printf("global symbol is %s\n", Symtable[1]->name);
   // Print out the code to initialise it
   switch (Symtable[id]->type) {
     case P_CHAR:

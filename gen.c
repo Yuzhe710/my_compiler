@@ -174,6 +174,7 @@ int genAST(struct ASTnode *n, int label, int parentASTop) {
             // or we are being dereferenced
             if (n->rvalue || parentASTop == A_DEREF) {
                 if (Symtable[n->v.id]->class == C_GLOBAL) {
+
                     return cgloadglob(n->v.id, n->op);
                 } else {
                     return cgloadlocal(n->v.id, n->op);
@@ -234,19 +235,20 @@ int genAST(struct ASTnode *n, int label, int parentASTop) {
         case A_RSHIFT:
             return (cgshr(leftreg, rightreg));
         case A_POSTINC:
-            // Load the variable's value into a register,
-            // then increment it
-            return (cgloadglob(n->v.id, n->op));
         case A_POSTDEC:
             // Load the variable's value into a register,
             // then decrement it
-            return (cgloadglob(n->v.id, n->op));
+            if (Symtable[n->v.id]->class == C_GLOBAL)
+                return (cgloadglob(n->v.id, n->op));
+            else
+                return cgloadlocal(n->v.id, n->op);
         case A_PREINC:
-            // Load and increment the variable's value into a register
-            return (cgloadglob(n->left->v.id, n->op));
         case A_PREDEC:
             // Load and decrement the variable's value into a register
-            return (cgloadglob(n->left->v.id, n->op));
+            if (Symtable[n->left->v.id]->class == C_GLOBAL)
+                return (cgloadglob(n->left->v.id, n->op));
+            else 
+                return (cgloadlocal(n->left->v.id, n->op));
         case A_NEGATE:
             return (cgnegate(leftreg));
         case A_INVERT:
