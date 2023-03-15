@@ -358,7 +358,7 @@ void cgcopyarg(int r, int argposn) {
 // Call a function with one argument from the given register
 // Return the register with the result
 // In x86-64, we need to copy the register with the argument value into %rdi
-// On returnm we need to copy the returned value from %rax into the register that will have this new value
+// On return we need to copy the returned value from %rax into the register that will have this new value
 // after calling the function, we pop off any arguments pushed on the stack
 int cgcall(int id, int numargs) {
   // Get a new register

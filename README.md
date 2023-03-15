@@ -1011,6 +1011,39 @@ gcc -o out out.s lib/printint.c
   
 ./out
 
+## Part_23 Function Prototypes  
+This part we want to implement the function prototype. We make sure the flexibility that a function prototype can be declared but without further implementation. Also a function can be just declared with its full body but without prior prototype delcaration. With prototypes, we will can then check parameters' types and numbers against the their function's prototype, when declaring a full function's body.
+  
+Previously, when we declare a function (with its body), we added function's name into symbol table's global end, followed by the parameters's symbol. We will also add its parameters into the local end of the symbol table. And when we call the function, we load arguments into registers and/or push on the stack. 
+  
+(However what if we do not call that function? The parameters symbol will be kept at the local end) For the prototypes, we decide to store the function's name and parameters in symbol table's global end (only) when parsing the prototype. Only when we meet the function's full body will its parameters' symbol be added to the local end. This will be good for the fact that if we do not implement the function later, the prototype's parameters will not go to the local end.  
+  
+With prototype, the whole design for the new function's parsing mechanism will be the following.  
+```
+Get the identifier and '('.
+Search for the identifier in the symbol table.
+If it exists, there is already a prototype: get the id position of the function and its parameter count.
+
+While parsing parameters:
+    - if a previous prototype, compare this param's type against the existing one. Update the symbol's name in case this is a full function
+    - if no previous prototype, add the parameter to the symbol table
+
+Ensure # of params matches any existing prototype.
+Parse the ')'. If ';' is next, done.
+
+If '}' is next, copy the parameter list from the global symbol table to the local symbol table. Copy them in a loop so that they are put in reverse order in the local sym table.
+```
+
+--------------------------------------------------------------------  
+  
+To compile and test:
+gcc-12 -o comp1 -g cg.c decl.c expr.c gen.c main.c misc.c scan.c stmt.c sym.c tree.c types.c
+
+./comp1 tests/input29.c or tests/input30.c
+
+gcc -o out out.s lib/printint.c
+  
+./out
 
   
 
