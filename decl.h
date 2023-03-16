@@ -24,6 +24,7 @@ void genglobsym(int id);
 int genlabel(void);
 int genprimsize(int type);
 int genglobstr(char *strvalue);
+void genpostamble();
 
 
 //int interpretAST(struct ASTnode *n);
@@ -73,6 +74,7 @@ int cgloadlocal(int id, int op);
 int cgloadglobstr(int id);
 int cgstorlocal(int r, int id);
 void cgcopyarg(int r, int argposn);
+void cgpostamble(void);
 
 
 // stmt.c
@@ -104,6 +106,7 @@ int addlocl(char *name, int type, int stype, int class, int size);
 int findsymbol(char *s);
 void freelocsyms(void);
 void copyfuncparams(int slot);
+void clear_symtable(void);
 
 // decl.c
 int parse_type(void);

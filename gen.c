@@ -291,6 +291,10 @@ int genglobstr(char *strvalue) {
     return l;
 }
 
+void genpostamble() {
+    cgpostamble();
+}
+
 // void generatecode(struct ASTnode *n) {
 //     int reg;
 

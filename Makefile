@@ -5,11 +5,11 @@ SRCS= cg.c decl.c expr.c gen.c main.c misc.c \
 comp1mac: $(SRCS) $(HSRCS)
 	gcc-12 -o comp1 -g -Wall $(SRCS)
 
-comp1: $(SRCS) $(HSRCS)
-	gcc -o comp1 -g -Wall $(SRCS)
+mycompiler: $(SRCS) $(HSRCS)
+	gcc -o mycompiler -g -Wall $(SRCS)
 
 clean:
-	rm -f comp1 *.o *s out
+	rm -f mycompiler *.o *s out
 
-test: comp1 test2/runtests
+test: mycompiler test2/runtests
 	(cd test2; chmod +x runtests; ./runtests)

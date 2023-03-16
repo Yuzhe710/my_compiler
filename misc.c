@@ -42,7 +42,10 @@ void matchrparen(void) {
 
 // Print out fatal messages
 void fatal(char *s) {
-  fprintf(stderr, "%s on line %d\n", s, Line); exit(1);
+  fprintf(stderr, "%s on line %d\n", s, Line); 
+  fclose(Outfile);
+  unlink(Outfilename);  // remove files if they never fully generated 
+  exit(1);
 }
 
 void fatals(char *s1, char *s2) {

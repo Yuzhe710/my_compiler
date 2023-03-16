@@ -1,3 +1,5 @@
+int printf(char *fmt);
+
 int fred() {
   return(56);
 }
@@ -5,7 +7,7 @@ int fred() {
 void main() {
   int dummy;
   int result;
-  dummy= printint(23);
+  dummy= printf("%d\n", 23);
   result= fred(10);
-  dummy= printint(result);
+  dummy= printf("%d\n", result);
 }

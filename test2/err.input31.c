@@ -1,1 +1,1 @@
-Expecting a primary expression, got token:15 on line 3
+Expecting a primary expression, got token:15 on line 5

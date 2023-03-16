@@ -1,3 +1,5 @@
+int printf(char *fmt);
+
 int a;
 int b;
 int c;
@@ -8,8 +10,8 @@ int main()
   int y;
   int x;
   x= 10; y= 20; z= 30;
-  printint(x); printint(y); printint(z);
+  printf("%d\n", x); printf("%d\n", y); printf("%d\n", z);
   a= 5; b= 15; c= 25;
-  printint(a); printint(b); printint(c);
+  printf("%d\n", a); printf("%d\n", b); printf("%d\n", c);
   return(0);
 }

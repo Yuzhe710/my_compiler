@@ -1,1 +1,1 @@
-For now, declaration of local arrays is not implemented on line 2
+For now, declaration of local arrays is not implemented on line 4

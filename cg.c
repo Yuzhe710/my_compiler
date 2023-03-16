@@ -646,3 +646,7 @@ int cgloadlocal(int id, int op) {
   }
   return r;
 }
+
+// Nothing to do
+void cgpostamble(void) {
+}
