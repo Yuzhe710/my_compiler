@@ -364,7 +364,6 @@ struct ASTnode *binexpr(int ptp) {
             (rightassoc(tokentype) && op_precedence(tokentype) == ptp)) {
         // get the integer literal
         scan(&Token);
-
         // recursively call binexpr() with 
         // precedence of our token to build a sub-tree
         right = binexpr(OpPrec[tokentype]);
@@ -379,7 +378,7 @@ struct ASTnode *binexpr(int ptp) {
 
             // Ensure the right's type matches the left
             right = modify_type(right, left->type, 0);
-            if (left == NULL)
+            if (right == NULL)
                 fatal("Incompatible expression in assignment");
 
             // Make an assignment AST tree. 
