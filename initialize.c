@@ -4,6 +4,7 @@ int Putback = '\n';
 int Line = 1;
 FILE *Infile;
 FILE *Outfile;
+char *Outfilename;   
 struct token Token;
 char *Text;
 struct symtable *Symtable[1024];
