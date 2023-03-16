@@ -153,7 +153,7 @@ static struct ASTnode *getleft(void) {
 
             return n;
         default:
-            fatald("Syntax error, token", Token.token);
+            fatald("Expecting a primary expression, got token", Token.token);
     }
     // scan the next token and return the leaf node
     scan(&Token);
@@ -183,7 +183,7 @@ static int OpPrec[] = {
     }; 
 
 static int op_precedence(int tokentype) {
-    if (tokentype >= T_SLASH)
+    if (tokentype > T_SLASH)
         fatald("Token with no precedence in op_precedence:", tokentype);
     int prec = OpPrec[tokentype];
     // printf("%d\n", tokentype);
