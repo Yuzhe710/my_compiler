@@ -1045,6 +1045,8 @@ gcc -o out out.s lib/printint.c
   
 ./out
 
+## Part_24 Makefile and run tests
+This part, I make a Makefile and several tests to run, including a run test script
   
 
 
