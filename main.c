@@ -183,6 +183,7 @@ int main(int argc, char *argv[]) {
             switch (argv[i][j]) {
                 case 'o':
                     outfilename = argv[++i];    // Save & skip to next argument
+                    break;
                 case 'T': 
                     O_dumpAST = 1; break;
                 case 'c':
