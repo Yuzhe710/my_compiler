@@ -5,6 +5,7 @@
 #include "decl.h"
 #include "initialize.c"
 #include <errno.h>
+#include <unistd.h>
 
 // Initialise global variables
 static void init() {

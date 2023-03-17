@@ -1,6 +1,7 @@
 #include "scan.h"
 #include "decl.h"
 #include "defs.h"
+#include <unistd.h>
 
 // Check that if current token is t
 // fetch next token if yes, else throw an error
