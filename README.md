@@ -1083,7 +1083,19 @@ Also, you can compile the compiler yourself and test against any test file with 
   
 gcc -o mycompiler -g cg.c decl.c expr.c gen.c main.c misc.c scan.c stmt.c sym.c tree.c types.c  
   
-./mycompiler -o out tests/input54.c
+./mycompiler -o out tests/input54.c  
+  
+## Part_26 A bit of refactoring  
+This part we do a bit of refactoring. The main changes we did is to make the lowest four bits of a type to be the level of indirection. 0 means no pointer, 1 means pointer, 2 means pointer pointer ect.  
+```
+// Primitive types. The bottom 4 bits is an integer
+// value that represents the level of indirection,
+// e.g. 0= no pointer, 1= pointer, 2= pointer pointer etc.
+enum {
+  P_NONE, P_VOID=16, P_CHAR=32, P_INT=48, P_LONG=64
+};
+```
+16 in binary is 10000, 32 is 10000, 48 is 110000, 64 is 1000000. If the lowest four bits of any of these types is not zero, it means a pointer type.
 
 
 
