@@ -1046,8 +1046,45 @@ gcc -o out out.s lib/printint.c
 ./out
 
 ## Part_24 Makefile and run tests
-This part, I make a Makefile and several tests to run, including a run test script
+This part, I make a Makefile and several tests to run, including a run test script  
   
+## Part_25 More flags and new tests  
+In this part, we added more flags -S, -c, -o to our compiler, which is made to be more similar to GCC compiler's flags. We also updated the tests where `printint()` is removed while `printf()` is called instead.  
+  
+`-c` flag means we generate object files but don't link them  
+`-S` flag means we generate assembly files but don't link them
+`-o` flag means we produce the final executable file. 
+  
+Only passing `-c` will result in object files (*.o), only passing `-S` will result in assembly files (*.s). Note that the user can pass multiple flags. For example `-c -S`, `-S -c`, `-o out -S -c`... But what actually be produced depends on the last flag of `-S` and `-c`. If -S is the last, we end up having assembly files only. If -c is the last, we end up having object files only. As long as `-S` or `-c` exists, the `-o out` will not take effect as the linkage will not be processed.  
+  
+Another major change is that we get rid of `printint()` in all test files and use `printf()` from C standard library instead.  
+  
+One issue that was a bit confusing to me was that, now we do not have our own `printint()` function provided and we simply call `printf()`which is provided by standard C library instead, how can our compiler run the test without error? To me, as we did not provide any implementation for `printf()`, nor we gave any instructions to our compiler that it should search for function from C library, error should be generated. But in fact, it relates to the gcc linkage process. Although the test input will be compiled by our compiler, we still use gcc’s linker to link the object file into final executable file (when we do `gcc -o out out.s`). This linker will search for function symbol we defined (`printf()` here) from the standard c library. The `@PLT`  in the `call` instruction stands for Procedure Linkage Table, [What is PLT/GOT]( https://reverseengineering.stackexchange.com/questions/1992/what-is-plt-got) has the explaination:
+
+> PLT stands for Procedure Linkage Table which is, put simply, used to call external procedures/functions whose address isn’t known in the time of linking, and is left to be resolved by the dynamic linker at run time… GOT stands for Global Offsets Table and is similarly used to resolve addresses. 
+
+And further information with greater details are provided by [PLT and GOT – the key to code sharing and dynamic libraries]( https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html). Which I have not read yet.
+
+Hence in a word, it is gcc’s linker who does the function searching from the C standard library. And if we link the object file by LD linker (not part of GCC), it will report the error which says “underfined reference to printf”. And if we compile the test source code with gcc -nolibc option, similar error is emerged. 
+
+Another explanation from [this article]( https://stackoverflow.com/questions/71759099/where-does-gcc-find-printf-my-code-worked-without-any-include) can also be looked at, which is more introductory to the concept. 
+  
+--------------------------------------------------------------------  
+  
+To test:  
+  
+make test  
+  
+And after that you can clean the *.s, *.o, and out file and executable compiler (./mycompiler) by calling  
+  
+make clean  
+  
+Also, you can compile the compiler yourself and test against any test file with flags. For example, 
+  
+gcc -o mycompiler -g cg.c decl.c expr.c gen.c main.c misc.c scan.c stmt.c sym.c tree.c types.c  
+  
+./mycompiler -o out tests/input54.c
+
 
 
 
