@@ -17,7 +17,12 @@ static void init() {
 
 // Print out a usage message if arguments are wrong
 static void usage(char *prog) {
-    fprintf(stderr, "Usage: %s [-T] infile\n", prog);
+    fprintf(stderr, "Usage: %s [-vcST] [-o outfile] file [file ...]\n", prog);
+    fprintf(stderr, "       -v give verbose output of the compilation stages\n");
+    fprintf(stderr, "       -c generate object files but don't link them\n");
+    fprintf(stderr, "       -S generate assembly files but don't link them\n");
+    fprintf(stderr, "       -T dump the AST trees for each input file\n");
+    fprintf(stderr, "       -o outfile, produce the outfile executable file\n");
     exit(1);
 }
 
@@ -110,17 +115,18 @@ void do_link(char *outfilename, char *objlist[]) {
     int cnt, size = TEXTLEN;
     char cmd[TEXTLEN], *cptr;
     int err;
-
     // Start with the linker command and the output file
     cptr = cmd;
-    cnt = snprintf(cptr, size, "%s %s", LDCMD, outfilename);
+    cnt = snprintf(cptr, size, "%s %s ", LDCMD, outfilename);
     cptr += cnt;
     size -= cnt;
 
     // Now append each object file
     while (*objlist != NULL) {
         cnt = snprintf(cptr, size, "%s ", *objlist);
-        cptr += cnt; size -= cnt; objlist++;
+        cptr += cnt; 
+        size -= cnt; 
+        objlist++;
     }
 
     if (O_verbose) printf("%s\n", cmd);
@@ -213,6 +219,7 @@ int main(int argc, char *argv[]) {
 
         if (O_dolink || O_assemble) {
             objfile = do_assemble(asmfile); // Assemble it to object format
+            
             if (objcnt == (MAXOBJ - 2)) {
                 fprintf(stderr, "Too many object files for the compiler to handle\n");
 	            exit(1);
