@@ -9,7 +9,7 @@ mycompiler: $(SRCS) $(HSRCS)
 	gcc -o mycompiler -g -Wall $(SRCS)
 
 clean:
-	rm -f mycompiler tests/*.o tests/*s 
+	rm -f mycompiler tests/*.o tests/*.s 
 
 test: mycompiler tests/runtests
 	(cd tests; chmod +x runtests; ./runtests)
