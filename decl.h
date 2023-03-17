@@ -101,7 +101,7 @@ void fatalc(char *s, int c);
 // sym.c
 int findglob(char *s);
 int findlocl(char *s);
-int addglob(char* name, int type, int stype, int class, int endlabel, int size);
+int addglob(char* name, int type, int stype, int class, int size);
 int addlocl(char *name, int type, int stype, int class, int size);
 int findsymbol(char *s);
 void freelocsyms(void);

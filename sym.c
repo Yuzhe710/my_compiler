@@ -56,14 +56,13 @@ static int newlocl(void) {
 // + endlabel: if this is a function
 // + posn: Position information for local symbols 
 static void updatesym(int slot, char *name, int type, int stype, 
-        int class, int endlabel, int size, int posn) {
+        int class, int size, int posn) {
     if (slot < 0 || slot >= NSYMBOLS)
         fatal("Invalid symbol slot number in updatesym()");
     Symtable[slot]->name = strdup(name);
     Symtable[slot]->type = type;
     Symtable[slot]->stype = stype;
     Symtable[slot]->class = class;
-    Symtable[slot]->endlabel = endlabel;
     Symtable[slot]->size = size;
     Symtable[slot]->posn = posn;
 }
@@ -81,7 +80,7 @@ void freelocsyms(void) {
 // + size: number of elements
 // + endlabel: if this is a function
 // Return the slot number in the symbol table
-int addglob(char *name, int type, int stype, int class, int endlabel, int size) {
+int addglob(char *name, int type, int stype, int class, int size) {
     int slot;
 
     // if the symbol is already in symbol table
@@ -91,7 +90,7 @@ int addglob(char *name, int type, int stype, int class, int endlabel, int size) 
     
     // otherwise create a new slot and return its number
     slot = newglob();
-    updatesym(slot, name, type, stype, class, endlabel, size, 0);
+    updatesym(slot, name, type, stype, class, size, 0);
     // Generate the assembly for the symbol if it's global
     if (class == C_GLOBAL)
         genglobsym(slot);
@@ -114,7 +113,7 @@ int addlocl(char *name, int type, int stype, int class, int size) {
     // Update the symbol table entry. If this is a parameter, 
     localslot = newlocl();
     
-    updatesym(localslot, name, type, stype, class, 0, size, 0);
+    updatesym(localslot, name, type, stype, class, size, 0);
     
     // Return the local symbol's slot
     return localslot;

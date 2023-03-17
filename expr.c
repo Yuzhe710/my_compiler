@@ -133,7 +133,7 @@ static struct ASTnode *getleft(void) {
             // make an anonymous global string. 
             // The label is effectively the base of the array of characters in the string
             id = genglobstr(Text);
-            n = mkastleaf(A_STRLIT, P_CHARPTR, id);
+            n = mkastleaf(A_STRLIT, pointer_to(P_CHAR), id);
             break;
         case T_INTLIT:
             // For an INTLIT token, make a leaf AST node for it

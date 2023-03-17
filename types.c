@@ -5,46 +5,31 @@
 // Given a primitive type, return
 // the type which is a pointer to it
 int pointer_to(int type) {
-    int newtype;
-    switch (type) {
-        case P_VOID: newtype = P_VOIDPTR; break;
-        case P_CHAR: newtype = P_CHARPTR; break;
-        case P_INT: newtype = P_INTPTR; break;
-        case P_LONG: newtype = P_LONGPTR; break;
-        default:
-            fatald("Unrecognised in pointer_to: type", type);
-    }
-    return newtype;
+    if ((type & 0xf) == 0xf)
+        fatald("Unrecognised in pointer_to: type", type);
+    return type + 1;
 }
 
 // Given a primitive type, return 
 // the type which it points to
+// As long as we have an integer type, the lowest four bits are 0s.
+// hence if an integer type & 0xf and we will get 0x0, meaning it cannot
+// be dereferenced
 int value_at(int type) {
-    int newtype;
-    switch (type) {
-        case P_VOIDPTR: newtype = P_VOID; break;
-        case P_CHARPTR: newtype = P_CHAR; break;
-        case P_INTPTR:  newtype = P_INT;  break;
-        case P_LONGPTR: newtype = P_LONG; break;
-        default:
+    if ((type & 0xf) == 0x0)
         fatald("Unrecognised in value_at: type", type);
-    }
-    return newtype;
+    return type - 1;
 }
 
 // Return true if a type is an int type of any size
 // false otherwise
 int inttype(int type) {
-    if (type == P_CHAR || type == P_INT || type == P_LONG)
-        return 1;
-    return 0;
+    return ((type & 0xf) == 0);
 }
 
 // Return true if a type is of pointer type
 int ptrtype(int type) {
-    if (type == P_VOIDPTR ||  type == P_CHARPTR || type == P_INTPTR || type == P_LONGPTR) 
-        return 1;
-    return 0;
+    return ((type & 0x1f) != 0);
 }   
 
 // Given an AST tree and a type which we want it to become, 

@@ -55,9 +55,11 @@ enum {
 };
 
 // Primitives types
+// The bottom 4 bits is an integer 
+// value that represents the level of indirection
+// e.g. 0= no pointer, 1= pointer, 2= pointer pointer ect.
 enum {
-    P_NONE, P_VOID, P_CHAR, P_INT, P_LONG,
-    P_VOIDPTR, P_CHARPTR, P_INTPTR, P_LONGPTR
+    P_NONE, P_VOID=16, P_CHAR=32, P_INT=48, P_LONG=64
 };
 
 // AST structure
@@ -103,10 +105,12 @@ struct symtable {
     int type;        // Primitive type for the symbol
     int stype;       // Structural type for the symbol (future)
     int class;       // Storage class for the symbol
-    int endlabel;    // For S_FUNCTIONs, the end label
-    int size;        // Number of elements in the symbol
-    int posn;        // For locals, the negative offset 
-                     // from the stack base pointer
-
-    #define nelems posn    // For Functions, the number of parameters
+    union {
+        int endlabel;    // For S_FUNCTIONs, the end label
+        int size;        // Number of elements in the symbol
+    };
+    union {
+        int posn;        // For locals, the negative offset from the stack base pointer
+        int nelems;      // For Functions, the number of parameters
+    };
 };
