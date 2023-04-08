@@ -905,7 +905,7 @@ cc -o out tests/input27b.c out.s lib/printint.c
 ```
 And we can examine the assembly code for `param8()`:  
 
-```
+```c
 param8:
         pushq   %rbp                    # Save %rbp, move %rsp
         movq    %rsp, %rbp
@@ -1087,7 +1087,7 @@ gcc -o mycompiler -g cg.c decl.c expr.c gen.c main.c misc.c scan.c stmt.c sym.c 
   
 ## Part_26 A bit of refactoring  
 This part we do a bit of refactoring. The main changes we did is to make the lowest four bits of a type to be the level of indirection. 0 means no pointer, 1 means pointer, 2 means pointer pointer ect.  
-```
+```c
 // Primitive types. The bottom 4 bits is an integer
 // value that represents the level of indirection,
 // e.g. 0= no pointer, 1= pointer, 2= pointer pointer etc.
@@ -1097,6 +1097,90 @@ enum {
 ```
 16 in binary is 10000, 32 is 10000, 48 is 110000, 64 is 1000000. If the lowest four bits of any of these types is not zero, it means a pointer type.
 
+## Part_27 Symbol Table Redesign
+In this part and a few following parts, we will try to implement composite structures namely Structs, Unions and Enums. There are lots of details about technical designs and will e discussed in later parts. In this part, we only aim to do a relatively simple preparation: to re-design the symbol table, from an array structure, to singly-linked lists.
 
+The reason of a re-design is that, we do not want to skip over a few other information to search for the symbol we want in the symbol table. For example, with the old array-based symbol table, we had to skip over the function parameters when we were searching for global variables and functions. Meanwhile, to support composite structures, the names (symbols) of structs, unions, enums, as well as the name of their members, the types of their members will be stored in symbol table. In addition, inserting and deteleting nodes from linked lists will be easy. 
 
+We will change our old array-based symbol table to three linked-lists, we will have:
+ + A singly-linked list for the global variables and functions
+ + A singly-lined list for the variables local to the current function
+ + A singly-lined list for the parameters local to the current function
 
+Now the symbol table struct will be:
+```c
+struct symtable {
+  char *name;                   // Name of a symbol
+  int stype;                    // Structural type for the symbol
+  ...
+  struct symtable *next;        // Next symbol in one list
+  struct symtable *member;      // First parameter of a function
+};
+```
+An graphical example provided by DoctorWkt is:
+```c
+  int a;
+  char b;
+  void func1(int x, int y);
+  void main(int argc, char **argv) {
+    int loc1;
+    int loc2;
+  }
+```
+![](Figs/newsymlists.png)
+
+We have three list "heads" which point to the three lists. We can now walk the global symbol list and not have to skip over the parameters, as each function keeps its parameters on its own list.
+
+When it comes time to parse a function's body, we can point the parameter list at the function's parameter list. Then, as local variables get declared, they are simply appended to the local variable list.
+
+Then, once the function's body is parsed and its assembly code generated, we can set the parameter and local lists back to being empty without disturbing the parameter list in the globally-visible function.  
+
+To summarise current changes, firstly we have three symbol table lists in scan.h
+```c
+// Symbol table lists
+extern struct symtable *Globhead, *Globtail;   // Global variables and functions
+extern struct symtable *Loclhead, *Locltail;   // Local variables
+extern struct symtable *Parmhead, *Parmtail;   // Local parameters
+```
+All functions in sym.c now updated to use them. We also add a generic function to append a node to a list.  
+```c
+// Append a node to the singly-linked list pointed to by head or tail
+void appendsym(struct symtable **head, struct symtable **tail,
+               struct symtable *node) {
+
+  // Check for valid pointers
+  if (head == NULL || tail == NULL || node == NULL)
+    fatal("Either head, tail or node is NULL in appendsym");
+
+  // Append to the list
+  if (*tail) {
+    (*tail)->next = node; *tail = node;
+  } else *head = *tail = node;
+  node->next = NULL;
+}
+```
+And a genric search function to search for a node in a list
+```c
+// Search for a symbol in a specific list.
+// Return a pointer to the found node or NULL if not found.
+static struct symtable *findsyminlist(char *s, struct symtable *list) {
+  for (; list != NULL; list = list->next)
+    if ((list->name != NULL) && !strcmp(s, list->name))
+      return (list);
+  return (NULL);
+}
+```
+list-specific `findXXX()` functions were rewritten as well. Meanwhile, There is a function, `findsymbol()`, that tries to find a symbol in a function's parameter list first, then the function's local variables, then finally global variables. And there is a function, `clear_symtable()`, to reset the head and tail of all three lists to NULL, i.e. to clear all three lists.
+
+The global symbol lists is only cleared once each individual source code file is
+parsed. But we need to a) set up the parameter list, and b) clear the local symbol
+list, each time we start parsing the body of a new function.
+
+When we are parsing a parameter list in `param_declaration()`
+in `expr.c`, we call `var_declaration()` for each parameter. This creates a symbol
+table node and appends it to the parameter list, i.e. `Parmhead` and `Parmtail`.
+When `param_declaration()` returns, `Parmhead` points at the parameter list.
+
+Lastly, there are heaps of code rewritten due to the change to several linked lists for the symbol table. For example, symbol nodes used to be referenced with code like `Symtable[n->id]`. This is now `n->sym`.
+
+Also, a lot of the code in `cg.c` refers to symbol names, so you now see these as `n->sym->name`. Similarly, the code to dump the AST trees in `tree.c` now has a lot of `n->sym->name` in it.
