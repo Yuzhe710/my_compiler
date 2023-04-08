@@ -70,6 +70,7 @@ struct ASTnode {
     struct ASTnode *left;       // left, mid and right child trees
     struct ASTnode *mid;
     struct ASTnode *right;
+    struct symtable *sym;       // For many AST nodes, the pointer to the symbol in symbol table
     // For A_INTLIT, the integer value
     // For A_IDENT, the symbol slot number
     // For A_FUNCTION, the symbol slot number
@@ -77,13 +78,14 @@ struct ASTnode {
     // For A_FUNCCALL, the 
     union {
         int intvalue;           // for A_INTLIT, the integer value
-        int id;                 // for A_IDENT, the symbol slot number
         int size;               // for A_SCALE, the symbol slot number
     } v;
 };
 
-#define NOREG -1                // Use NOREG when the AST 
-#define NOLABEL 0               // Use NOLABEL when we have no label to pass to genAST()
+enum {
+    NOREG = -1,                 // Use NOREG when the AST generation function has no register to return
+    NOLABEL = 0                 // Use NOLABEL when we have no label pass to genAST()
+};
 
 // Structural types
 enum {
@@ -113,4 +115,6 @@ struct symtable {
         int posn;        // For locals, the negative offset from the stack base pointer
         int nelems;      // For Functions, the number of parameters
     };
+    struct symtable *next;      // Next symbol in one list
+    struct symtable *member;    // First member of a function, struct, union, or enum
 };

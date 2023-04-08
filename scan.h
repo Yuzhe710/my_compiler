@@ -19,7 +19,13 @@ extern char *Text;              // a buffer contains Last identifier scanned
 extern struct symtable *Symtable[1024];   // Gobal symbol table
 extern int Globs;               // Position of next free global symbol slot
 extern int Locls;               // Position of next free local symbol slot
-extern int Functionid;          // Symbol id of the current function
+extern struct symtable *Functionid;          // Symbol id of the current function
+ 
+// Symbol table lists
+extern struct symtable *Globhead, *Globtail;    // Global variables and functions
+extern struct symtable *Loclhead, *Locltail;    // Local variables
+extern struct symtable *Parmhead, *Parmtail;    // Local parameters
+extern struct symtable *Comphead, *Comptail;    // Composite types
 
 extern int O_dumpAST;           // If true, dump the AST tree
 extern int O_keepasm;           // If true, keep any assembly files
